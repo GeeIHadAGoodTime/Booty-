@@ -215,6 +215,10 @@ namespace Booty.UI
                     : new Color(1f, 0.35f, 0.35f);
             }
 
+            // S3.4: Gold coin SFX on successful repair (gold was spent)
+            if (success)
+                FindObjectOfType<Booty.Audio.AudioManager>()?.PlayGoldCoin();
+
             RefreshRepairPanel();
         }
 
@@ -291,10 +295,11 @@ namespace Booty.UI
             _tabRecruit = MakeTabButton(panelGO, "RECRUIT",  new Vector2(tabStartX + 2 * tabGap, tabY), out _tabRecruitLabel);
             _tabUpgrade = MakeTabButton(panelGO, "UPGRADE",  new Vector2(tabStartX + 3 * tabGap, tabY), out _tabUpgradeLabel);
 
-            _tabRepair.onClick.AddListener(() => ShowTab("repair"));
-            _tabTrade.onClick.AddListener(() => ShowTab("trade"));
-            _tabRecruit.onClick.AddListener(() => ShowTab("recruit"));
-            _tabUpgrade.onClick.AddListener(() => ShowTab("upgrade"));
+            // S3.4: Play UI click SFX on tab changes
+            _tabRepair.onClick.AddListener(() => { FindObjectOfType<Booty.Audio.AudioManager>()?.PlayClick(); ShowTab("repair"); });
+            _tabTrade.onClick.AddListener(() => { FindObjectOfType<Booty.Audio.AudioManager>()?.PlayClick(); ShowTab("trade"); });
+            _tabRecruit.onClick.AddListener(() => { FindObjectOfType<Booty.Audio.AudioManager>()?.PlayClick(); ShowTab("recruit"); });
+            _tabUpgrade.onClick.AddListener(() => { FindObjectOfType<Booty.Audio.AudioManager>()?.PlayClick(); ShowTab("upgrade"); });
 
             // ── Content area (below tabs) ─────────────────────────────────
             var contentGO = new GameObject("ContentArea");
@@ -398,6 +403,8 @@ namespace Booty.UI
             cb.normalColor = BtnNormal; cb.highlightedColor = BtnHover;
             cb.pressedColor = BtnPress; cb.disabledColor = new Color(0.15f, 0.15f, 0.2f, 0.6f);
             btn.colors = cb;
+            // S3.4: Play UI click SFX before executing the button's action
+            btn.onClick.AddListener(() => FindObjectOfType<Booty.Audio.AudioManager>()?.PlayClick());
             btn.onClick.AddListener(onClick);
             AddOutline(go, GoldDim);
 

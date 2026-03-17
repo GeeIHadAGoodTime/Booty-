@@ -125,8 +125,14 @@ namespace Booty.UI
 
         private void OnVolumeChanged(float value)
         {
-            AudioListener.volume = value / 100f;
+            float normalized = value / 100f;
+            AudioListener.volume = normalized;
             PlayerPrefs.SetFloat("MasterVolume", value);
+
+            // S3.4: Also apply to AudioManager per-channel volumes
+            var audioMgr = FindObjectOfType<Booty.Audio.AudioManager>();
+            audioMgr?.SetSFXVolume(normalized);
+            audioMgr?.SetMusicVolume(normalized);
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -244,6 +250,8 @@ namespace Booty.UI
             cb.normalColor = BtnNormal; cb.highlightedColor = BtnHover;
             cb.pressedColor = BtnPress;
             btn.colors = cb;
+            // S3.4: Play UI click SFX before executing the button's action
+            btn.onClick.AddListener(() => FindObjectOfType<Booty.Audio.AudioManager>()?.PlayClick());
             btn.onClick.AddListener(onClick);
             AddOutline(go, GoldDim);
 

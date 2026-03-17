@@ -30,6 +30,7 @@ using Booty.Core;
 using Booty.UI;
 using Booty.Infra.Debug;
 using Booty.VFX;
+using Booty.Audio;
 
 namespace Booty.Bootstrap
 {
@@ -67,6 +68,7 @@ namespace Booty.Bootstrap
         private GameOverUI _gameOverUI;
         private PortScreenUI _portScreenUI;
         private CapturePopup _capturePopup;
+        private AudioManager _audioManager;
 
         // ══════════════════════════════════════════════════════════════════
         //  Boot Sequence
@@ -153,6 +155,23 @@ namespace Booty.Bootstrap
             // ── 11b. Combat VFX ──────────────────────────────────────────────
             _combatVFX = gameObject.AddComponent<CombatVFX>();
 
+            // ── 11c. Audio System (S3.4) ──────────────────────────────────────
+            // AudioManager provides SFX + music channels. CombatAudio subscribes to
+            // BroadsideSystem and HPSystem events in its Start(). AmbientAudio manages
+            // ocean/wind ambient loops and sailing↔combat music transitions.
+            var audioGO = new GameObject("AudioManager");
+            _audioManager = audioGO.AddComponent<AudioManager>();
+
+            var combatAudioGO = new GameObject("CombatAudio");
+            combatAudioGO.AddComponent<CombatAudio>();
+
+            var ambientAudioGO = new GameObject("AmbientAudio");
+            ambientAudioGO.AddComponent<AmbientAudio>();
+
+            // S3.4: Wire income collection → gold coin SFX
+            _economySystem.OnIncomeCollected += (amount, portCount) =>
+                _audioManager?.PlayGoldCoin();
+
             // ── 12. Player Ship ──────────────────────────────────────────────
             GameObject playerGO = playerShipPrefab != null
                 ? Instantiate(playerShipPrefab, playerSpawnPosition, Quaternion.identity)
@@ -184,12 +203,14 @@ namespace Booty.Bootstrap
             };
 
             // S3.3: Wire port capture → CapturePopup celebration + PortScreenUI tabs
+            // S3.4: Play victory chime on capture
             portSystem.OnPortCaptured += (portId, newFaction) =>
             {
                 if (newFaction == "player_pirates")
                 {
                     _capturePopup?.ShowCapture(portId, "enemy fleet", 200f);
                     _portScreenUI?.ShowPortScreen(portId, justCaptured: true);
+                    _audioManager?.PlayChime();
                     Debug.Log("[BootyBootstrap] Port captured by player — showing CapturePopup+PortScreenUI: " + portId);
                 }
             };
