@@ -141,16 +141,29 @@ namespace Booty.World
                 meta.sourceFaction = port.factionOwner;
                 meta.sourcePortId = port.portId;
                 meta.difficultyMultiplier = difficultyMult;
-                meta.tier = Mathf.Clamp((int)port.defenseRating / 2 + 1, 1, 3);
+                // Port defense sets base tier (1-3 based on defense_rating 1-5)
+                int portTier = Mathf.Clamp((int)port.defenseRating / 2 + 1, 1, 3);
+                // Renown promotes minimum tier: unknown=1, notorious(50+)=2, feared(150+)=3
+                int renownTier = 1;
+                {
+                    float renown = _renownSystem.Renown;
+                    if (renown >= 150f)     renownTier = 3;
+                    else if (renown >= 50f) renownTier = 2;
+                }
+                // Use the higher of port tier or renown tier
+                meta.tier = Mathf.Max(portTier, renownTier);
 
                 // Wire loot popup
                 var lootPopup = enemy.GetComponent<LootPopup>();
                 if (lootPopup == null) lootPopup = enemy.AddComponent<LootPopup>();
                 lootPopup.Configure(CombatConfig.GoldRewardPerKill * meta.tier);
 
-                // Wire kill rewards
+                // Wire kill rewards — configure HP with tier scaling and renown difficulty
                 var enemyHP = enemy.GetComponent<HPSystem>();
                 if (enemyHP == null) enemyHP = enemy.AddComponent<HPSystem>();
+                int baseHP = CombatConfig.DefaultEnemyHP + (meta.tier - 1) * 20; // tier1=100, tier2=120, tier3=140
+                int scaledHP = Mathf.RoundToInt(baseHP * difficultyMult);
+                enemyHP.Configure(scaledHP);
                 int tier = meta.tier;
                 enemyHP.OnDestroyed += () =>
                 {
