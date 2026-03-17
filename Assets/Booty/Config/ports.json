@@ -1,0 +1,48 @@
+{
+    "ports": [
+        {
+            "id": "port_haven",
+            "name": "Port Haven",
+            "region_id": "silver_sea",
+            "faction_owner": "player_pirates",
+            "base_income": 50,
+            "defense_rating": 2.0,
+            "level": 1,
+            "position_x": -40.0,
+            "position_z": 30.0
+        },
+        {
+            "id": "fort_imperial",
+            "name": "Fort Imperial",
+            "region_id": "silver_sea",
+            "faction_owner": "spanish_crown",
+            "base_income": 80,
+            "defense_rating": 4.0,
+            "level": 2,
+            "position_x": 50.0,
+            "position_z": 40.0
+        },
+        {
+            "id": "smugglers_cove",
+            "name": "Smuggler's Cove",
+            "region_id": "silver_sea",
+            "faction_owner": "neutral_traders",
+            "base_income": 30,
+            "defense_rating": 1.0,
+            "level": 1,
+            "position_x": 10.0,
+            "position_z": -50.0
+        },
+        {
+            "id": "isla_del_oro",
+            "name": "Isla del Oro",
+            "region_id": "silver_sea",
+            "faction_owner": "spanish_crown",
+            "base_income": 100,
+            "defense_rating": 5.0,
+            "level": 3,
+            "position_x": -30.0,
+            "position_z": -30.0
+        }
+    ]
+}

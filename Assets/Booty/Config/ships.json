@@ -1,0 +1,46 @@
+{
+    "ships": [
+        {
+            "id": "sloop",
+            "name": "Sloop",
+            "ship_class": "sloop",
+            "hull": 80,
+            "sail": 60,
+            "speed": 8.0,
+            "turn_rate": 90.0,
+            "broadside_slots": 4,
+            "crew_min": 10,
+            "crew_optimal": 20,
+            "value": 500,
+            "tier": 1
+        },
+        {
+            "id": "brig",
+            "name": "Brigantine",
+            "ship_class": "brig",
+            "hull": 150,
+            "sail": 100,
+            "speed": 6.0,
+            "turn_rate": 60.0,
+            "broadside_slots": 8,
+            "crew_min": 30,
+            "crew_optimal": 60,
+            "value": 1500,
+            "tier": 2
+        },
+        {
+            "id": "frigate",
+            "name": "War Frigate",
+            "ship_class": "frigate",
+            "hull": 250,
+            "sail": 150,
+            "speed": 5.0,
+            "turn_rate": 40.0,
+            "broadside_slots": 14,
+            "crew_min": 80,
+            "crew_optimal": 150,
+            "value": 4000,
+            "tier": 3
+        }
+    ]
+}
