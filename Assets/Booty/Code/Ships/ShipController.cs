@@ -70,6 +70,10 @@ namespace Booty.Ships
         private float _aiThrottle;  // -1..1
         private float _aiRudder;    // -1..1
 
+        // ── Damage multipliers (set by ShipDamageState) ─────────────────
+        private float _speedMultiplier = 1f;   // hull damage → speed penalty
+        private float _turnMultiplier  = 1f;   // sail damage → turn penalty
+
         // ══════════════════════════════════════════════════════════════════
         //  Public API
         // ══════════════════════════════════════════════════════════════════
@@ -109,6 +113,18 @@ namespace Booty.Ships
             isPlayerControlled = value;
         }
 
+        /// <summary>
+        /// Apply damage-state multipliers (0-1) to speed and turn rate.
+        /// Called by ShipDamageState when hull or sail takes damage.
+        /// </summary>
+        /// <param name="speed">Speed multiplier: 1.0 = full, 0.1 = minimum.</param>
+        /// <param name="turn">Turn-rate multiplier: 1.0 = full, 0.1 = minimum.</param>
+        public void SetDamageMultipliers(float speed, float turn)
+        {
+            _speedMultiplier = Mathf.Clamp(speed, 0.1f, 1f);
+            _turnMultiplier  = Mathf.Clamp(turn,  0.1f, 1f);
+        }
+
         // ══════════════════════════════════════════════════════════════════
         //  Update Loop
         // ══════════════════════════════════════════════════════════════════
@@ -141,8 +157,12 @@ namespace Booty.Ships
         {
             float dt = Time.deltaTime;
 
+            // Apply damage multipliers to base stats
+            float effectiveMaxSpeed = maxSpeed * _speedMultiplier;
+            float effectiveTurnRate = turnRate * _turnMultiplier;
+
             // ── Acceleration / deceleration ─────────────────────────────
-            float targetSpeed = throttle * maxSpeed;
+            float targetSpeed = throttle * effectiveMaxSpeed;
 
             if (Mathf.Abs(targetSpeed) > Mathf.Abs(CurrentSpeed))
             {
@@ -157,8 +177,8 @@ namespace Booty.Ships
 
             // ── Turning (yaw on Y axis) ─────────────────────────────────
             // Turn rate scales with speed — can't turn at full rate when stopped
-            float speedFactor = Mathf.Clamp01(Mathf.Abs(CurrentSpeed) / (maxSpeed * 0.2f));
-            float yaw = rudder * turnRate * speedFactor * dt;
+            float speedFactor = Mathf.Clamp01(Mathf.Abs(CurrentSpeed) / (effectiveMaxSpeed * 0.2f));
+            float yaw = rudder * effectiveTurnRate * speedFactor * dt;
             transform.Rotate(0f, yaw, 0f, Space.World);
 
             // ── Translation on XZ plane ─────────────────────────────────

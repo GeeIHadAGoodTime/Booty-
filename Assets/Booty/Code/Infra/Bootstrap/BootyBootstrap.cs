@@ -32,6 +32,7 @@ using Booty.Infra.Debug;
 using Booty.VFX;
 using Booty.Audio;
 using Booty.Balance;
+using Booty.Quests;
 
 namespace Booty.Bootstrap
 {
@@ -66,6 +67,11 @@ namespace Booty.Bootstrap
 
         [Tooltip("Starting difficulty preset applied at game launch.")]
         [SerializeField] private Difficulty startingDifficulty = Difficulty.Normal;
+
+        [Header("Quest System")]
+        [Tooltip("Optional: assign QuestData ScriptableObject assets here. " +
+                 "If empty, QuestManager auto-loads the 5 starter quests.")]
+        [SerializeField] private System.Collections.Generic.List<QuestData> starterQuestAssets = new();
 
         // ══════════════════════════════════════════════════════════════════
         //  Private State
