@@ -14,12 +14,12 @@ namespace Booty.Economy
     public class EconomySystem : MonoBehaviour
     {
         [Header("Income Settings")]
-        [SerializeField] private float incomeIntervalSeconds = 30f;
+        [SerializeField] private float incomeIntervalSeconds = 60f;
         [SerializeField] private float globalIncomeScalar = 1.0f;
 
         [Header("Combat Spoils")]
-        [SerializeField] private float baseCombatReward = 50f;
-        [SerializeField] private float combatRewardPerTier = 25f;
+        [SerializeField] private float baseCombatReward = 80f;
+        [SerializeField] private float combatRewardPerTier = 35f;
 
         /// <summary>Fired when gold changes. Args: newGoldTotal, delta.</summary>
         public event Action<float, float> OnGoldChanged;
@@ -53,7 +53,7 @@ namespace Booty.Economy
             }
             else
             {
-                Gold = 200f;
+                Gold = 300f;
                 _incomeTimer = 0f;
             }
 

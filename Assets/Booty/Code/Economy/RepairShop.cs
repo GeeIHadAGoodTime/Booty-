@@ -12,9 +12,9 @@ namespace Booty.Economy
     public class RepairShop : MonoBehaviour
     {
         [Header("Repair Cost Settings")]
-        [SerializeField] private float costPerHpPoint = 1.5f;
+        [SerializeField] private float costPerHpPoint = 1.0f;
         [SerializeField] private float repairCostScalar = 1.0f;
-        [SerializeField] private float minimumRepairCost = 5f;
+        [SerializeField] private float minimumRepairCost = 15f;
 
         private EconomySystem _economySystem;
         private SaveSystem _saveSystem;

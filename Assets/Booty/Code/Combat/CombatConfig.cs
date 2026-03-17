@@ -19,7 +19,7 @@ namespace Booty.Combat
         // ══════════════════════════════════════════════════════════════════
 
         /// <summary>Damage per cannonball hit on hull.</summary>
-        public const int BaseDamage = 10;
+        public const int BaseDamage = 8;
 
         /// <summary>Maximum broadside firing range (world units).</summary>
         public const float FiringRange = 25f;
@@ -28,10 +28,10 @@ namespace Booty.Combat
         public const float BroadsideHalfAngle = 45f;
 
         /// <summary>Cooldown between consecutive broadside volleys (seconds).</summary>
-        public const float FireCooldown = 2.5f;
+        public const float FireCooldown = 2.0f;
 
         /// <summary>Number of projectiles per volley.</summary>
-        public const int ProjectilesPerVolley = 3;
+        public const int ProjectilesPerVolley = 2;
 
         /// <summary>Angular spread for the volley (degrees, total arc).</summary>
         public const float VolleySpreadAngle = 10f;
@@ -57,7 +57,7 @@ namespace Booty.Combat
         public const int DefaultPlayerHP = 150;
 
         /// <summary>Default hull HP for a basic enemy ship.</summary>
-        public const int DefaultEnemyHP = 80;
+        public const int DefaultEnemyHP = 100;
 
         // ══════════════════════════════════════════════════════════════════
         //  Enemy AI
@@ -83,7 +83,7 @@ namespace Booty.Combat
         // ══════════════════════════════════════════════════════════════════
 
         /// <summary>Base gold reward for sinking an enemy ship.</summary>
-        public const int GoldRewardPerKill = 50;
+        public const int GoldRewardPerKill = 80;
 
         /// <summary>Base renown reward for sinking an enemy ship.</summary>
         public const float RenownRewardPerKill = 5f;
