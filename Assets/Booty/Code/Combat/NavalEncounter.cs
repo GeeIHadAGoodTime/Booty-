@@ -282,7 +282,7 @@ namespace Booty.Combat
 
             // Mapped to 10 %–90 % success range with some randomness
             float fleeChance = Mathf.Clamp(speedRatio * 0.8f + 0.1f, 0.1f, 0.9f);
-            bool  success    = Random.value < fleeChance;
+            bool  success    = UnityEngine.Random.value < fleeChance;
 
             Debug.Log($"[NavalEncounter] Flee attempt: playerSpeed={playerSpeed:F1} " +
                       $"enemySpeed={enemyMaxSpeed:F1} chance={fleeChance:P0} " +
