@@ -6,6 +6,8 @@ using Booty.Economy;
 using Booty.Combat;
 using Booty.UI;
 using Booty.Balance;
+using Booty.Faction;
+using Booty.Ships;
 
 namespace Booty.World
 {
@@ -183,11 +185,18 @@ namespace Booty.World
                 int baseHP       = enemyBaseHP + (meta.tier - 1) * enemyHPTier;
                 int scaledHP     = Mathf.RoundToInt(baseHP * difficultyMult);
                 enemyHP.Configure(scaledHP);
-                int tier = meta.tier;
+                // Wire AI faction so reputation system governs whether this ship aggros
+                var ai = enemy.GetComponent<EnemyAI>();
+                if (ai != null) ai.FactionId = meta.sourceFaction;
+
+                int    tier       = meta.tier;
+                string factionId  = meta.sourceFaction; // capture for lambda
                 enemyHP.OnDestroyed += () =>
                 {
                     if (_economySystem != null) _economySystem.AwardCombatSpoils(tier);
                     if (_renownSystem  != null) _renownSystem.AwardKillRenown(tier);
+                    // Attacking a faction's ships lowers reputation with that faction
+                    ReputationManager.Instance?.ModifyReputation(factionId, -10f);
                 };
             }
 

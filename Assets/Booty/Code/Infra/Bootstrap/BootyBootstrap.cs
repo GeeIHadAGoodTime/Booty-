@@ -96,7 +96,7 @@ namespace Booty.Bootstrap
         [Header("World Map (S3-WorldNav)")]
         [Tooltip("Assign all 8 PortData ScriptableObject assets here. " +
                  "Leave empty to use the built-in Caribbean defaults.")]
-        [SerializeField] private System.Collections.Generic.List<PortData> portDataAssets = new();
+        [SerializeField] private System.Collections.Generic.List<Booty.World.PortData> portDataAssets = new();
 
         [Header("Faction & Reputation")]
         [Tooltip("Assign the 4 FactionDataSO assets here " +
@@ -383,7 +383,7 @@ namespace Booty.Bootstrap
 
             // ── 15. Enemy Spawner ────────────────────────────────────────────
             var spawnerGO    = new GameObject("EnemySpawner");
-            var enemySpawner = spawnerGO.AddComponent<EnemySpawner>();
+            var enemySpawner = spawnerGO.AddComponent<Booty.World.EnemySpawner>();
             enemySpawner.Initialize(portSystem, _renownSystem, _economySystem, playerGO.transform, balance); // S3.6
 
             // ── 15b. World Map Manager (S3-WorldNav) ─────────────────────────

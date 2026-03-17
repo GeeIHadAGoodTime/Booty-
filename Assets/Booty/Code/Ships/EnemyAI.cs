@@ -9,6 +9,7 @@
 // ---------------------------------------------------------------------------
 
 using UnityEngine;
+using Booty.Faction;
 
 namespace Booty.Ships
 {
@@ -30,6 +31,12 @@ namespace Booty.Ships
             Attack,
             Evade
         }
+
+        [Header("Faction")]
+        [Tooltip("Faction this ship belongs to (e.g. 'spanish_crown'). " +
+                 "Set by EnemySpawner or BootyBootstrap from EnemyMetadata.sourceFaction.\n" +
+                 "Empty = no allegiance = always hostile.")]
+        public string FactionId = "";
 
         [Header("Debug (read-only)")]
         [SerializeField] private AIState currentState = AIState.Patrol;
@@ -105,7 +112,7 @@ namespace Booty.Ships
             switch (currentState)
             {
                 case AIState.Patrol:
-                    if (distToPlayer <= Combat.CombatConfig.AggroDistance)
+                    if (distToPlayer <= Combat.CombatConfig.AggroDistance && ShouldAggro())
                     {
                         currentState = AIState.Chase;
                     }
@@ -257,6 +264,28 @@ namespace Booty.Ships
                 Vector3 evadeTarget = transform.position + awayFromPlayer.normalized * 20f;
                 SteerToward(evadeTarget, 1f);
             }
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  Faction / Reputation Helpers
+        // ══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Returns true when this ship should aggro the player based on faction
+        /// reputation. Ships with Hostile standing attack on sight; Neutral and
+        /// Allied ships patrol and ignore the player.
+        /// <para>
+        /// Falls back to <c>true</c> (always aggressive) when no
+        /// <see cref="Faction.ReputationManager"/> is present in the scene.
+        /// </para>
+        /// </summary>
+        private bool ShouldAggro()
+        {
+            var repMgr = ReputationManager.Instance;
+            if (repMgr == null)
+                return true; // No reputation system — use original always-aggressive behaviour
+
+            return repMgr.IsHostile(FactionId);
         }
 
         // ══════════════════════════════════════════════════════════════════
