@@ -66,6 +66,7 @@ namespace Booty.Bootstrap
         private CombatVFX _combatVFX;
         private GameOverUI _gameOverUI;
         private PortScreenUI _portScreenUI;
+        private CapturePopup _capturePopup;
 
         // ══════════════════════════════════════════════════════════════════
         //  Boot Sequence
@@ -133,6 +134,10 @@ namespace Booty.Bootstrap
             var portScreenGO = new GameObject("PortScreenUI");
             _portScreenUI = portScreenGO.AddComponent<PortScreenUI>();
 
+            // ── 10e. Capture Popup (full-screen on port capture) ─────────────
+            var captureGO = new GameObject("CapturePopup");
+            _capturePopup = captureGO.AddComponent<CapturePopup>();
+
             // ── 10c. Pause Menu UI ────────────────────────────────────────────
             var pauseGO = new GameObject("PauseMenuUI");
             pauseGO.AddComponent<PauseMenuUI>();
@@ -178,13 +183,14 @@ namespace Booty.Bootstrap
                 Debug.Log("[BootyBootstrap] Player destroyed — showing GameOverUI.");
             };
 
-            // S3.3: Wire port capture → PortScreenUI victory banner
+            // S3.3: Wire port capture → CapturePopup celebration + PortScreenUI tabs
             portSystem.OnPortCaptured += (portId, newFaction) =>
             {
                 if (newFaction == "player_pirates")
                 {
+                    _capturePopup?.ShowCapture(portId, "enemy fleet", 200f);
                     _portScreenUI?.ShowPortScreen(portId, justCaptured: true);
-                    Debug.Log("[BootyBootstrap] Port captured by player — opening PortScreenUI: " + portId);
+                    Debug.Log("[BootyBootstrap] Port captured by player — showing CapturePopup+PortScreenUI: " + portId);
                 }
             };
 

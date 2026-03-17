@@ -76,7 +76,7 @@ namespace Booty.UI
     internal class LootPopupMover : MonoBehaviour
     {
         private float _elapsed;
-        private const float Duration = 1.8f;
+        private const float Duration = 3.0f;
         private const float RiseSpeed = 3f;
         private Text _text;
 

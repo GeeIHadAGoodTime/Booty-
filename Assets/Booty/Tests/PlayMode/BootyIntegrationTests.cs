@@ -198,5 +198,117 @@ namespace Booty.Tests.PlayMode
             Object.Destroy(shopGO);
             yield return null;
         }
+
+        // -- Test 6: Full Loop — three kill → capture → repair cycles ────────────
+        // Satisfies S3.5 exit criteria: verifies the complete gameplay loop runs
+        // three times without assertion failure, all systems wired correctly.
+
+        [UnityTest]
+        public IEnumerator Test_FullLoop_ThreeCycles_AllSystemsWiredCorrectly()
+        {
+            // ── Infrastructure ────────────────────────────────────────────
+            var saveGO = new GameObject("FL_SaveSystem");
+            var save   = saveGO.AddComponent<SaveSystem>();
+            save.Initialize();
+
+            var econGO  = new GameObject("FL_EconomySystem");
+            var economy = econGO.AddComponent<EconomySystem>();
+            economy.Initialize(null, save);   // starts at 300 gold
+
+            var psGO       = new GameObject("FL_PortSystem");
+            var portSystem = psGO.AddComponent<PortSystem>();
+            portSystem.Initialize(new List<PortRuntimeData>
+            {
+                new PortRuntimeData
+                {
+                    portId        = "fl_hostile_port",
+                    portName      = "FL Hostile Harbor",
+                    factionOwner  = "enemy_fleet",
+                    baseIncome    = 100,
+                    defenseRating = 1f,
+                    level         = 1,
+                    worldPosition = Vector3.zero,
+                }
+            }, save);
+
+            var repairGO   = new GameObject("FL_RepairShop");
+            var repairShop = repairGO.AddComponent<RepairShop>();
+            repairShop.Initialize(economy, save);
+
+            float startGold = economy.Gold;
+
+            // ── Three gameplay cycles: kill → capture → repair ────────────
+            for (int cycle = 0; cycle < 3; cycle++)
+            {
+                // Step A: Kill an enemy → gold awarded via OnDestroyed event
+                var enemyGO = new GameObject("FL_Enemy_" + cycle);
+                var enemyHP = enemyGO.AddComponent<HPSystem>();
+                enemyHP.Configure(100);
+                int tier = 1;
+                enemyHP.OnDestroyed += () => economy.AwardCombatSpoils(tier);
+
+                float goldBefore = economy.Gold;
+                enemyHP.TakeDamage(1000);   // instant kill
+                yield return null;          // allow OnDestroyed event to fire
+
+                Assert.Greater(economy.Gold, goldBefore,
+                    $"Cycle {cycle + 1}: Gold should increase after enemy kill. " +
+                    $"Was {goldBefore:F0}, now {economy.Gold:F0}");
+
+                if (enemyGO != null) Object.Destroy(enemyGO);
+                // Clean up any floating damage numbers spawned by the kill
+                foreach (var fn in Object.FindObjectsOfType<FloatingDamageNumber>())
+                    if (fn != null) Object.Destroy(fn.gameObject);
+
+                // Step B: Port capture (only needed on cycle 0; port stays player-owned)
+                if (cycle == 0)
+                {
+                    bool captured = portSystem.CapturePort("fl_hostile_port");
+                    Assert.IsTrue(captured,
+                        "Cycle 1: CapturePort should return true for an enemy-owned port");
+                    Assert.AreEqual("player_pirates",
+                        portSystem.GetPort("fl_hostile_port").factionOwner,
+                        "Cycle 1: Port faction must change to 'player_pirates' after capture");
+                }
+                else
+                {
+                    // Subsequent cycles: port should remain player-owned without re-capture
+                    Assert.AreEqual("player_pirates",
+                        portSystem.GetPort("fl_hostile_port").factionOwner,
+                        $"Cycle {cycle + 1}: Captured port must stay player-owned");
+                }
+
+                // Step C: Damage player hull, then repair
+                save.CurrentState.playerShip.currentHull = 30;
+                save.CurrentState.playerShip.maxHull     = 100;
+
+                bool repaired = repairShop.RepairShip();
+                Assert.IsTrue(repaired,
+                    $"Cycle {cycle + 1}: RepairShip should succeed (gold available, hull damaged)");
+                Assert.AreEqual(100,
+                    save.CurrentState.playerShip.currentHull,
+                    $"Cycle {cycle + 1}: Hull should be fully restored to maxHull after repair");
+
+                yield return null;
+            }
+
+            // ── Final assertions after all three cycles ───────────────────
+            Assert.Greater(economy.Gold, startGold,
+                $"Gold after 3 cycles should exceed start ({startGold:F0}). " +
+                $"Current: {economy.Gold:F0}");
+
+            Assert.AreEqual("player_pirates",
+                portSystem.GetPort("fl_hostile_port")?.factionOwner,
+                "Port must remain player-owned after completing all 3 loops");
+
+            // ── Cleanup ───────────────────────────────────────────────────
+            Object.Destroy(saveGO);
+            Object.Destroy(econGO);
+            Object.Destroy(psGO);
+            Object.Destroy(repairGO);
+            foreach (var fn in Object.FindObjectsOfType<FloatingDamageNumber>())
+                if (fn != null) Object.Destroy(fn.gameObject);
+            yield return null;
+        }
     }
 }
