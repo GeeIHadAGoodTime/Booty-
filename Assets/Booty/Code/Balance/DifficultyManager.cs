@@ -101,7 +101,10 @@ namespace Booty.Balance
         /// <param name="difficulty">Difficulty preset to apply immediately.</param>
         public void Initialize(GameBalance balance, Difficulty difficulty = Difficulty.Normal)
         {
-            baseBalance = balance;
+            if (balance != null)
+                baseBalance = balance;
+            else if (baseBalance == null)
+                baseBalance = ScriptableObject.CreateInstance<GameBalance>();
             ApplyDifficulty(difficulty);
             Debug.Log($"[DifficultyManager] Initialized via code. Difficulty: {CurrentDifficulty}");
         }
@@ -171,8 +174,13 @@ namespace Booty.Balance
             b.aggroDistance    = base_.aggroDistance * 0.8f;                   // shorter leash
 
             // ── Economy buffs ─────────────────────────────────────────────
-            b.baseCombatReward    = base_.baseCombatReward * 1.5f;             // +50% kill gold
+            b.baseCombatReward    = base_.baseCombatReward * 1.5f;             // +50% kill gold (legacy)
             b.combatRewardPerTier = base_.combatRewardPerTier * 1.5f;
+            b.goldKillTier1       = base_.goldKillTier1 * 1.5f;               // +50% tier-specific kill gold
+            b.goldKillTier2       = base_.goldKillTier2 * 1.5f;
+            b.goldKillTier3       = base_.goldKillTier3 * 1.5f;
+            b.goldKillTier4       = base_.goldKillTier4 * 1.5f;
+            b.goldKillTier5       = base_.goldKillTier5 * 1.5f;
             b.startingGold        = base_.startingGold * 1.5f;                 // extra starting gold
             b.repairCostScalar    = base_.repairCostScalar * 0.5f;             // 50% cheaper repairs
 
@@ -205,8 +213,13 @@ namespace Booty.Balance
             b.cannonDamage     = Mathf.RoundToInt(base_.cannonDamage * 0.8f);  // player deals less
 
             // ── Economy nerfs ─────────────────────────────────────────────
-            b.baseCombatReward    = base_.baseCombatReward * 0.75f;            // -25% kill gold
+            b.baseCombatReward    = base_.baseCombatReward * 0.75f;            // -25% kill gold (legacy)
             b.combatRewardPerTier = base_.combatRewardPerTier * 0.75f;
+            b.goldKillTier1       = base_.goldKillTier1 * 0.75f;              // -25% tier-specific kill gold
+            b.goldKillTier2       = base_.goldKillTier2 * 0.75f;
+            b.goldKillTier3       = base_.goldKillTier3 * 0.75f;
+            b.goldKillTier4       = base_.goldKillTier4 * 0.75f;
+            b.goldKillTier5       = base_.goldKillTier5 * 0.75f;
             b.startingGold        = base_.startingGold * 0.7f;                 // tighter start
             b.repairCostScalar    = base_.repairCostScalar * 2.0f;             // double repair costs
 
