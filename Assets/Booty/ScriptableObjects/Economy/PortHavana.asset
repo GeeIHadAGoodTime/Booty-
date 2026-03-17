@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1a0deb369ecc00fa6a7bd9746ecadff, type: 3}
+  m_Name: PortHavana
+  m_EditorClassIdentifier:
+  portId: port_havana
+  portDisplayName: Havana
+  economyDescription: Crown jewel of Spain's Caribbean empire — awash in sugar and silk.
+  goods:
+  - goods: {fileID: 11400000, guid: 306fdf180c9d2e797ccf57e94c76d84d, type: 2}
+    supplyLevel: 0.85
+    demandMultiplier: 0.7
+    supplyRecoveryRate: 0.025
+  - goods: {fileID: 11400000, guid: 971b51ced1a210102ae17c66b1da4f57, type: 2}
+    supplyLevel: 0.8
+    demandMultiplier: 0.8
+    supplyRecoveryRate: 0.015
+  - goods: {fileID: 11400000, guid: 852755de3f7d96b60bae6c542b3c4631, type: 2}
+    supplyLevel: 0.5
+    demandMultiplier: 1.1
+    supplyRecoveryRate: 0.015
+  - goods: {fileID: 11400000, guid: 3ce35e690eb9fcd51fe25def8c0e3f23, type: 2}
+    supplyLevel: 0.35
+    demandMultiplier: 1.5
+    supplyRecoveryRate: 0.01
+  - goods: {fileID: 11400000, guid: b2106faf773de4e457e1d32f220f52ee, type: 2}
+    supplyLevel: 0.15
+    demandMultiplier: 0.8
+    supplyRecoveryRate: 0.008
+  driftIntervalSeconds: 30
+  randomDriftMagnitude: 0.02

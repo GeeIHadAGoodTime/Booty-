@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1a0deb369ecc00fa6a7bd9746ecadff, type: 3}
+  m_Name: PortKingston
+  m_EditorClassIdentifier:
+  portId: port_kingston
+  portDisplayName: Kingston
+  economyDescription: Seat of British naval power. Richly stocked — but watch for the patrol ships.
+  goods:
+  - goods: {fileID: 11400000, guid: 9a1f32091c52ddd07ade3a7650d733a9, type: 2}
+    supplyLevel: 0.8
+    demandMultiplier: 0.7
+    supplyRecoveryRate: 0.03
+  - goods: {fileID: 11400000, guid: 306fdf180c9d2e797ccf57e94c76d84d, type: 2}
+    supplyLevel: 0.75
+    demandMultiplier: 0.75
+    supplyRecoveryRate: 0.025
+  - goods: {fileID: 11400000, guid: b2106faf773de4e457e1d32f220f52ee, type: 2}
+    supplyLevel: 0.6
+    demandMultiplier: 1.0
+    supplyRecoveryRate: 0.018
+  - goods: {fileID: 11400000, guid: 3ce35e690eb9fcd51fe25def8c0e3f23, type: 2}
+    supplyLevel: 0.5
+    demandMultiplier: 1.3
+    supplyRecoveryRate: 0.012
+  - goods: {fileID: 11400000, guid: 971b51ced1a210102ae17c66b1da4f57, type: 2}
+    supplyLevel: 0.55
+    demandMultiplier: 1.2
+    supplyRecoveryRate: 0.01
+  - goods: {fileID: 11400000, guid: 852755de3f7d96b60bae6c542b3c4631, type: 2}
+    supplyLevel: 0.4
+    demandMultiplier: 1.0
+    supplyRecoveryRate: 0.015
+  driftIntervalSeconds: 35
+  randomDriftMagnitude: 0.015

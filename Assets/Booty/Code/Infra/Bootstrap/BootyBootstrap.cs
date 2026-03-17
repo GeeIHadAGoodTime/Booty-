@@ -73,6 +73,14 @@ namespace Booty.Bootstrap
                  "If empty, QuestManager auto-loads the 5 starter quests.")]
         [SerializeField] private System.Collections.Generic.List<QuestData> starterQuestAssets = new();
 
+        [Header("Trade System")]
+        [Tooltip("Assign all PortEconomy ScriptableObject assets here " +
+                 "(one per port: Nassau, Havana, Tortuga, Kingston).")]
+        [SerializeField] private System.Collections.Generic.List<PortEconomy> portEconomyAssets = new();
+
+        [Tooltip("Maximum cargo weight the player's hold can carry.")]
+        [SerializeField] private int playerCargoCapacity = 100;
+
         // ══════════════════════════════════════════════════════════════════
         //  Private State
         // ══════════════════════════════════════════════════════════════════
@@ -80,6 +88,8 @@ namespace Booty.Bootstrap
         private EconomySystem   _economySystem;
         private RenownSystem    _renownSystem;
         private QuestManager    _questManager;
+        private TradeManager    _tradeManager;
+        private CargoInventory  _cargoInventory;
         private CombatVFX       _combatVFX;
         private ParticleManager _particleManager;   // S3.2: wake trails + debris
         private GameOverUI      _gameOverUI;
@@ -123,6 +133,20 @@ namespace Booty.Bootstrap
             _economySystem   = econGO.AddComponent<EconomySystem>();
             _economySystem.ConfigureBalance(balance);            // S3.6: apply difficulty
             _economySystem.Initialize(portSystem, saveSystem);
+
+            // ── 5b. Cargo Inventory ──────────────────────────────────────────
+            // Tracks goods the player is carrying; used by TradeManager.
+            var cargoGO        = new GameObject("CargoInventory");
+            _cargoInventory    = cargoGO.AddComponent<CargoInventory>();
+            _cargoInventory.Initialize(playerCargoCapacity);
+
+            // ── 5c. Trade Manager ────────────────────────────────────────────
+            // Handles buy/sell at ports; drives supply/demand drift per port.
+            // Assign PortEconomy assets to portEconomyAssets in the Inspector.
+            var tradeGO     = new GameObject("TradeManager");
+            _tradeManager   = tradeGO.AddComponent<TradeManager>();
+            _tradeManager.portEconomies.AddRange(portEconomyAssets);
+            _tradeManager.Initialize(_economySystem, _cargoInventory);
 
             // ── 6. Renown System ─────────────────────────────────────────────
             var renownGO   = new GameObject("RenownSystem");
