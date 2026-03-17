@@ -79,6 +79,7 @@ namespace Booty.Bootstrap
 
         private EconomySystem   _economySystem;
         private RenownSystem    _renownSystem;
+        private QuestManager    _questManager;
         private CombatVFX       _combatVFX;
         private ParticleManager _particleManager;   // S3.2: wake trails + debris
         private GameOverUI      _gameOverUI;
@@ -127,6 +128,13 @@ namespace Booty.Bootstrap
             var renownGO   = new GameObject("RenownSystem");
             _renownSystem  = renownGO.AddComponent<RenownSystem>();
             _renownSystem.Initialize(saveSystem, portSystem);
+
+            // ── 6b. Quest Manager (S3.3) ─────────────────────────────────────
+            // QuestManager must exist before portSystem events are wired so it can
+            // receive ReportPortCaptured and ReportKill callbacks in step 12+.
+            var questGO    = new GameObject("QuestManager");
+            _questManager  = questGO.AddComponent<QuestManager>();
+            _questManager.Initialize(starterQuestAssets, _economySystem, _renownSystem);
 
             // ── 7. Repair Shop ───────────────────────────────────────────────
             var repairGO   = new GameObject("RepairShop");
@@ -179,6 +187,10 @@ namespace Booty.Bootstrap
             // ── 11b. Combat VFX ──────────────────────────────────────────────
             _combatVFX = gameObject.AddComponent<CombatVFX>();
 
+            // ── 11b-S32. Particle Manager + Weather System (S3.2) ───────────
+            _particleManager = gameObject.AddComponent<ParticleManager>();
+            new GameObject("WeatherSystem").AddComponent<WeatherSystem>();
+
             // ── 11c. Audio System (S3.4) ──────────────────────────────────────
             // AudioManager provides SFX + music channels. CombatAudio subscribes to
             // BroadsideSystem and HPSystem events in its Start(). AmbientAudio manages
@@ -222,6 +234,8 @@ namespace Booty.Bootstrap
 
             // S3.2: Register player ship for combat VFX (fire, explosion)
             _combatVFX.RegisterShip(playerGO);
+            // S3.2: Register player for wake trail + debris
+            _particleManager?.RegisterShip(playerGO, shipController);
 
             // S3.1: Ship damage states — hull damage reduces speed, sail damage reduces turn
             var playerDamageState = playerGO.AddComponent<ShipDamageState>();
@@ -251,6 +265,8 @@ namespace Booty.Bootstrap
                     _capturePopup?.ShowCapture(portId, "enemy fleet", 200f);
                     _portScreenUI?.ShowPortScreen(portId, justCaptured: true);
                     _audioManager?.PlayChime();
+                    _questManager?.ReportPortCaptured(portId);  // S3.3: quest progress
+                    _questManager?.ReportArrival(portId);        // S3.3: arrival objectives
                     Debug.Log("[BootyBootstrap] Port captured by player — showing CapturePopup+PortScreenUI: " + portId);
                 }
             };
@@ -326,6 +342,8 @@ namespace Booty.Bootstrap
 
                 // S3.2: Register enemy ship for combat VFX (fire, explosion)
                 _combatVFX?.RegisterShip(enemyGO);
+                // S3.2: Register enemy for wake trail + debris
+                _particleManager?.RegisterShip(enemyGO, sc);
 
                 // S3.6: Configure enemy movement and HP from active balance
                 if (activeBalance != null)
@@ -342,11 +360,13 @@ namespace Booty.Bootstrap
                 var meta = enemyGO.GetComponent<EnemyMetadata>();
                 if (meta == null) meta = enemyGO.AddComponent<EnemyMetadata>();
                 if (meta.tier <= 0) meta.tier = 1;
-                int enemyTier = meta.tier;
+                int    enemyTier    = meta.tier;
+                string enemyFaction = meta.sourceFaction ?? "";
                 hp.OnDestroyed += () =>
                 {
                     if (_economySystem != null) _economySystem.AwardCombatSpoils(enemyTier);
                     if (_renownSystem  != null) _renownSystem.AwardKillRenown(enemyTier);
+                    if (_questManager  != null) _questManager.ReportKill(enemyFaction); // S3.3: quest progress
                 };
                 var lootPopup = enemyGO.AddComponent<Booty.UI.LootPopup>();
                 // S3.6: Use balance values for loot popup if available
