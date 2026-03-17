@@ -1,5 +1,6 @@
 using UnityEngine;
 using Booty.Save;
+using Booty.Balance;
 
 namespace Booty.Economy
 {
@@ -18,6 +19,22 @@ namespace Booty.Economy
 
         private EconomySystem _economySystem;
         private SaveSystem _saveSystem;
+
+        /// <summary>
+        /// Apply balance values from a GameBalance asset.
+        /// Call before or after Initialize() — values are read dynamically on use.
+        /// </summary>
+        /// <param name="balance">The active GameBalance (from DifficultyManager).</param>
+        public void ConfigureBalance(GameBalance balance)
+        {
+            if (balance == null) return;
+            costPerHpPoint      = balance.repairCostPerHP;
+            repairCostScalar    = balance.repairCostScalar;
+            minimumRepairCost   = balance.minimumRepairCost;
+            Debug.Log($"[RepairShop] Balance configured: " +
+                      $"costPerHP={costPerHpPoint} scalar={repairCostScalar} " +
+                      $"minCost={minimumRepairCost}");
+        }
 
         /// <summary>
         /// Initialize the repair shop with references to game systems.

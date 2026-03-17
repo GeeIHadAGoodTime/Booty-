@@ -31,6 +31,7 @@ using Booty.UI;
 using Booty.Infra.Debug;
 using Booty.VFX;
 using Booty.Audio;
+using Booty.Balance;
 
 namespace Booty.Bootstrap
 {
@@ -58,17 +59,26 @@ namespace Booty.Bootstrap
         [SerializeField] private TextAsset shipsConfigJson;
         [SerializeField] private TextAsset factionsConfigJson;
 
+        [Header("Balance & Difficulty")]
+        [Tooltip("Assign the GameBalance ScriptableObject asset here. " +
+                 "If null, DifficultyManager uses built-in defaults.")]
+        [SerializeField] private GameBalance gameBalanceAsset;
+
+        [Tooltip("Starting difficulty preset applied at game launch.")]
+        [SerializeField] private Difficulty startingDifficulty = Difficulty.Normal;
+
         // ══════════════════════════════════════════════════════════════════
         //  Private State
         // ══════════════════════════════════════════════════════════════════
 
-        private EconomySystem _economySystem;
-        private RenownSystem _renownSystem;
-        private CombatVFX _combatVFX;
-        private GameOverUI _gameOverUI;
-        private PortScreenUI _portScreenUI;
-        private CapturePopup _capturePopup;
-        private AudioManager _audioManager;
+        private EconomySystem   _economySystem;
+        private RenownSystem    _renownSystem;
+        private CombatVFX       _combatVFX;
+        private ParticleManager _particleManager;   // S3.2: wake trails + debris
+        private GameOverUI      _gameOverUI;
+        private PortScreenUI    _portScreenUI;
+        private CapturePopup    _capturePopup;
+        private AudioManager    _audioManager;
 
         // ══════════════════════════════════════════════════════════════════
         //  Boot Sequence
@@ -76,6 +86,12 @@ namespace Booty.Bootstrap
 
         private void Awake()
         {
+            // ── 0. Difficulty Manager (must be first — all other systems read balance) ──
+            var diffGO            = new GameObject("DifficultyManager");
+            var difficultyManager = diffGO.AddComponent<DifficultyManager>();
+            difficultyManager.Initialize(gameBalanceAsset, startingDifficulty);
+            var balance = difficultyManager.ActiveBalance;
+
             // ── 1. GameRoot ──────────────────────────────────────────────────
             var rootGO   = new GameObject("GameRoot");
             var gameRoot = rootGO.AddComponent<GameRoot>();
@@ -98,6 +114,7 @@ namespace Booty.Bootstrap
             // ── 5. Economy System ────────────────────────────────────────────
             var econGO       = new GameObject("EconomySystem");
             _economySystem   = econGO.AddComponent<EconomySystem>();
+            _economySystem.ConfigureBalance(balance);            // S3.6: apply difficulty
             _economySystem.Initialize(portSystem, saveSystem);
 
             // ── 6. Renown System ─────────────────────────────────────────────
@@ -108,6 +125,7 @@ namespace Booty.Bootstrap
             // ── 7. Repair Shop ───────────────────────────────────────────────
             var repairGO   = new GameObject("RepairShop");
             var repairShop = repairGO.AddComponent<RepairShop>();
+            repairShop.ConfigureBalance(balance);                // S3.6: apply difficulty
             repairShop.Initialize(_economySystem, saveSystem);
 
             // ── 8. Region Setup (also inits PortSystem + spawns port GOs) ────
@@ -187,6 +205,10 @@ namespace Booty.Bootstrap
             var broadside      = playerGO.GetComponent<BroadsideSystem>()
                                  ?? playerGO.AddComponent<BroadsideSystem>();
 
+            // S3.6: Apply balance to player ship movement and HP
+            shipController.Configure(balance.playerMaxSpeed, balance.playerTurnRate, balance.playerAcceleration);
+            hpSystem.Configure(balance.playerMaxHP);
+
             // S3.2: Visual layer — procedural ship mesh
             var playerVisual = playerGO.AddComponent<ShipVisual>();
             playerVisual.Initialize();
@@ -194,6 +216,18 @@ namespace Booty.Bootstrap
 
             // S3.2: Register player ship for combat VFX (fire, explosion)
             _combatVFX.RegisterShip(playerGO);
+
+            // S3.1: Ship damage states — hull damage reduces speed, sail damage reduces turn
+            var playerDamageState = playerGO.AddComponent<ShipDamageState>();
+            playerDamageState.Initialize(hpSystem, shipController);
+
+            // S3.1: Boarding system — player presses B to board nearby enemies
+            var boardingSystem = playerGO.AddComponent<BoardingSystem>();
+            boardingSystem.Initialize(hpSystem);
+
+            // S3.1: Player HP bar (green, hidden until first hit)
+            var playerHPBar = playerGO.AddComponent<ShipHPBar>();
+            playerHPBar.Initialize(hpSystem, isPlayer: true);
 
             // S3.3: Wire player death → GameOverUI (scene-reload respawn replaces broken teleport)
             hpSystem.OnDestroyed += () =>
@@ -237,7 +271,7 @@ namespace Booty.Bootstrap
             // ── 15. Enemy Spawner ────────────────────────────────────────────
             var spawnerGO    = new GameObject("EnemySpawner");
             var enemySpawner = spawnerGO.AddComponent<EnemySpawner>();
-            enemySpawner.Initialize(portSystem, _renownSystem, _economySystem, playerGO.transform);
+            enemySpawner.Initialize(portSystem, _renownSystem, _economySystem, playerGO.transform, balance); // S3.6
 
             // ── 16. Initial Enemy Spawn ──────────────────────────────────────
             SpawnEnemies(playerGO.transform);
@@ -249,6 +283,11 @@ namespace Booty.Bootstrap
 
         private void SpawnEnemies(Transform playerTransform)
         {
+            // Resolve active balance (DifficultyManager may already be created)
+            var activeBalance = DifficultyManager.Instance != null
+                ? DifficultyManager.Instance.ActiveBalance
+                : null;
+
             for (int i = 0; i < initialEnemyCount; i++)
             {
                 Vector3 offset = Random.insideUnitSphere * enemySpawnRadius;
@@ -282,6 +321,13 @@ namespace Booty.Bootstrap
                 // S3.2: Register enemy ship for combat VFX (fire, explosion)
                 _combatVFX?.RegisterShip(enemyGO);
 
+                // S3.6: Configure enemy movement and HP from active balance
+                if (activeBalance != null)
+                {
+                    sc.Configure(activeBalance.enemyMaxSpeed, activeBalance.enemyTurnRate, activeBalance.enemyAcceleration);
+                    hp.Configure(activeBalance.enemyBaseHP);
+                }
+
                 // Wire AI → other components
                 ai.Initialize(playerTransform, sc, bs, hp);
                 bs.Initialize(sc);
@@ -297,7 +343,22 @@ namespace Booty.Bootstrap
                     if (_renownSystem  != null) _renownSystem.AwardKillRenown(enemyTier);
                 };
                 var lootPopup = enemyGO.AddComponent<Booty.UI.LootPopup>();
-                lootPopup.Configure(50 + (enemyTier - 1) * 25);
+                // S3.6: Use balance values for loot popup if available
+                int lootBase    = activeBalance != null ? activeBalance.baseLootPopupGold    : 50;
+                int lootPerTier = activeBalance != null ? activeBalance.lootPopupGoldPerTier : 25;
+                lootPopup.Configure(lootBase + (enemyTier - 1) * lootPerTier);
+
+                // S3.1: Ship damage states — hull damage reduces speed, sail reduces turn
+                var enemyDamageState = enemyGO.AddComponent<ShipDamageState>();
+                enemyDamageState.Initialize(hp, sc);
+
+                // S3.1: Physical loot drop — collectible crates scattered at death position
+                var lootDrop = enemyGO.AddComponent<LootDrop>();
+                lootDrop.Initialize(hp, enemyTier);
+
+                // S3.1: Enemy HP bar (red, shown when hit)
+                var enemyHPBar = enemyGO.AddComponent<ShipHPBar>();
+                enemyHPBar.Initialize(hp, isPlayer: false);
             }
         }
 

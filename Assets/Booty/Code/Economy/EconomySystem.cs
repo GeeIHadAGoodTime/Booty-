@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using Booty.Ports;
 using Booty.Save;
+using Booty.Balance;
 
 namespace Booty.Economy
 {
@@ -16,6 +17,7 @@ namespace Booty.Economy
         [Header("Income Settings")]
         [SerializeField] private float incomeIntervalSeconds = 60f;
         [SerializeField] private float globalIncomeScalar = 1.0f;
+        [SerializeField] private float startingGold = 300f;
 
         [Header("Combat Spoils")]
         [SerializeField] private float baseCombatReward = 80f;
@@ -33,6 +35,24 @@ namespace Booty.Economy
 
         /// <summary>Current player gold total.</summary>
         public float Gold { get; private set; }
+
+        /// <summary>
+        /// Apply balance values from a GameBalance asset.
+        /// Call this before or after Initialize() — values are read dynamically.
+        /// </summary>
+        /// <param name="balance">The active GameBalance (from DifficultyManager).</param>
+        public void ConfigureBalance(GameBalance balance)
+        {
+            if (balance == null) return;
+            incomeIntervalSeconds = balance.incomeIntervalSeconds;
+            globalIncomeScalar    = balance.globalIncomeScalar;
+            baseCombatReward      = balance.baseCombatReward;
+            combatRewardPerTier   = balance.combatRewardPerTier;
+            startingGold          = balance.startingGold;
+            Debug.Log($"[EconomySystem] Balance configured: " +
+                      $"income={incomeIntervalSeconds}s scalar={globalIncomeScalar} " +
+                      $"combatReward={baseCombatReward}+{combatRewardPerTier}/tier");
+        }
 
         /// <summary>
         /// Initialize the economy system with references to other systems.
@@ -53,7 +73,7 @@ namespace Booty.Economy
             }
             else
             {
-                Gold = 300f;
+                Gold = startingGold;
                 _incomeTimer = 0f;
             }
 

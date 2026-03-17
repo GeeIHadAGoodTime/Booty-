@@ -5,6 +5,7 @@ using Booty.Core;
 using Booty.Economy;
 using Booty.Combat;
 using Booty.UI;
+using Booty.Balance;
 
 namespace Booty.World
 {
@@ -30,27 +31,41 @@ namespace Booty.World
         private RenownSystem _renownSystem;
         private EconomySystem _economySystem;
         private Transform _playerTransform;
+        private GameBalance _balance;
 
         private float _spawnTimer;
         private readonly List<GameObject> _activeEnemies = new List<GameObject>();
 
         /// <summary>
         /// Initialize the enemy spawner with system references.
-        /// Called by GameRoot during bootstrap.
+        /// Called by BootyBootstrap during scene setup.
         /// </summary>
         /// <param name="portSystem">Port system for ownership queries.</param>
         /// <param name="renownSystem">Renown system for difficulty scaling.</param>
         /// <param name="economySystem">Economy system for awarding combat spoils.</param>
         /// <param name="playerTransform">Player ship transform for distance checks.</param>
+        /// <param name="balance">Active GameBalance for spawn and loot values (optional).</param>
         public void Initialize(PortSystem portSystem, RenownSystem renownSystem,
-                               EconomySystem economySystem, Transform playerTransform)
+                               EconomySystem economySystem, Transform playerTransform,
+                               GameBalance balance = null)
         {
             _portSystem = portSystem;
             _renownSystem = renownSystem;
             _economySystem = economySystem;
             _playerTransform = playerTransform;
-            _spawnTimer = spawnIntervalSeconds * 0.5f; // Spawn sooner on game start
 
+            // Apply balance values if provided (overrides Inspector defaults)
+            if (balance != null)
+            {
+                _balance = balance;
+                spawnIntervalSeconds      = balance.spawnIntervalSeconds;
+                maxEnemiesPerPort         = balance.maxEnemiesPerPort;
+                maxTotalEnemies           = balance.maxTotalEnemies;
+                spawnRadiusFromPort       = balance.spawnRadiusFromPort;
+                minimumDistanceFromPlayer = balance.minimumDistanceFromPlayer;
+            }
+
+            _spawnTimer = spawnIntervalSeconds * 0.5f; // Spawn sooner on game start
             Debug.Log("[EnemySpawner] Initialized.");
         }
 
@@ -153,16 +168,20 @@ namespace Booty.World
                 // Use the higher of port tier or renown tier
                 meta.tier = Mathf.Max(portTier, renownTier);
 
-                // Wire loot popup
+                // Wire loot popup — use balance values when available
                 var lootPopup = enemy.GetComponent<LootPopup>();
                 if (lootPopup == null) lootPopup = enemy.AddComponent<LootPopup>();
-                lootPopup.Configure(CombatConfig.GoldRewardPerKill * meta.tier);
+                int lootBase    = _balance != null ? _balance.baseLootPopupGold    : CombatConfig.GoldRewardPerKill;
+                int lootPerTier = _balance != null ? _balance.lootPopupGoldPerTier : 25;
+                lootPopup.Configure(lootBase + (meta.tier - 1) * lootPerTier);
 
                 // Wire kill rewards — configure HP with tier scaling and renown difficulty
                 var enemyHP = enemy.GetComponent<HPSystem>();
                 if (enemyHP == null) enemyHP = enemy.AddComponent<HPSystem>();
-                int baseHP = CombatConfig.DefaultEnemyHP + (meta.tier - 1) * 20; // tier1=100, tier2=120, tier3=140
-                int scaledHP = Mathf.RoundToInt(baseHP * difficultyMult);
+                int enemyBaseHP  = _balance != null ? _balance.enemyBaseHP    : CombatConfig.DefaultEnemyHP;
+                int enemyHPTier  = _balance != null ? _balance.enemyHPPerTier : 20;
+                int baseHP       = enemyBaseHP + (meta.tier - 1) * enemyHPTier;
+                int scaledHP     = Mathf.RoundToInt(baseHP * difficultyMult);
                 enemyHP.Configure(scaledHP);
                 int tier = meta.tier;
                 enemyHP.OnDestroyed += () =>
