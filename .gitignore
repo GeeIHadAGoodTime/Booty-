@@ -1,0 +1,34 @@
+# Unity generated
+/Library/
+/Temp/
+/Logs/
+/UserSettings/
+/obj/
+/Build/
+/Builds/
+
+# Unity cache
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.csproj
+*.sln
+*.user
+
+# Cursor AI
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Codex task files
+codex-task*.txt
+
+# Debug artifacts
+"New Text Document.txt"
