@@ -34,6 +34,11 @@ namespace Booty.Audio
         private AudioSource _sfxSource;
         private AudioSource _musicSource;
 
+        // ── UI Clip cache ──────────────────────────────────────────────────
+        private AudioClip _uiClickClip;
+        private AudioClip _goldCoinClip;
+        private AudioClip _chimeClip;
+
         // ══════════════════════════════════════════════════════════════════
         //  Volume Settings
         // ══════════════════════════════════════════════════════════════════
@@ -65,6 +70,11 @@ namespace Booty.Audio
             _musicSource.spatialBlend = 0f;   // fully 2D
             _musicSource.loop         = true;
             _musicSource.volume       = _musicVolume;
+
+            // ── UI clips ──────────────────────────────────────────────────
+            _uiClickClip  = CreateClickClip();
+            _goldCoinClip = CreateGoldCoinClip();
+            _chimeClip    = CreateChimeClip();
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -172,6 +182,19 @@ namespace Booty.Audio
         }
 
         // ══════════════════════════════════════════════════════════════════
+        //  Public API — UI Sound Effects
+        // ══════════════════════════════════════════════════════════════════
+
+        /// <summary>Play a short UI click sound (button press).</summary>
+        public void PlayClick()    => PlaySFX(_uiClickClip,  Vector3.zero, 0.7f);
+
+        /// <summary>Play a gold coin pickup sound.</summary>
+        public void PlayGoldCoin() => PlaySFX(_goldCoinClip, Vector3.zero, 0.8f);
+
+        /// <summary>Play a chime sound (achievement / positive feedback).</summary>
+        public void PlayChime()    => PlaySFX(_chimeClip,    Vector3.zero, 0.9f);
+
+        // ══════════════════════════════════════════════════════════════════
         //  Internal — Coroutines
         // ══════════════════════════════════════════════════════════════════
 
@@ -193,6 +216,102 @@ namespace Booty.Audio
 
             _musicSource.volume = 0f;
             _musicSource.Stop();
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  Internal — UI Clip Generators
+        // ══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Short 1200 Hz sine click with sharp exponential decay (0.08s).
+        /// </summary>
+        private static AudioClip CreateClickClip()
+        {
+            int   sampleRate = 44100;
+            float duration   = 0.08f;
+            int   len        = (int)(sampleRate * duration);
+            float[] samples  = new float[len];
+
+            for (int i = 0; i < len; i++)
+            {
+                float t = (float)i / sampleRate;
+                samples[i] = Mathf.Clamp(
+                    Mathf.Sin(2f * Mathf.PI * 1200f * t) * Mathf.Exp(-t * 50f),
+                    -1f, 1f);
+            }
+
+            AudioClip clip = AudioClip.Create("UIClick", len, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        /// <summary>
+        /// Two-tone coin sound: 1400 Hz attack into 1800 Hz fade (0.3s).
+        /// </summary>
+        private static AudioClip CreateGoldCoinClip()
+        {
+            int   sampleRate = 44100;
+            float duration   = 0.3f;
+            int   len        = (int)(sampleRate * duration);
+            float[] samples  = new float[len];
+
+            for (int i = 0; i < len; i++)
+            {
+                float t      = (float)i / sampleRate;
+                float sample;
+
+                if (t < 0.1f)
+                {
+                    // First 0.1s: 1400 Hz with attack
+                    float attack = Mathf.Min(t / 0.02f, 1f);
+                    sample = Mathf.Sin(2f * Mathf.PI * 1400f * t) * attack * 0.7f;
+                }
+                else
+                {
+                    // 0.1–0.3s: 1800 Hz fading out
+                    float fade = 1f - (t - 0.1f) / 0.2f;
+                    sample = Mathf.Sin(2f * Mathf.PI * 1800f * t) * fade * 0.7f;
+                }
+
+                samples[i] = Mathf.Clamp(sample, -1f, 1f);
+            }
+
+            AudioClip clip = AudioClip.Create("GoldCoin", len, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        /// <summary>
+        /// C major triad chime: C5(523Hz) + E5(659Hz) + G5(784Hz), 0.8s with gentle attack.
+        /// </summary>
+        private static AudioClip CreateChimeClip()
+        {
+            int   sampleRate = 44100;
+            float duration   = 0.8f;
+            int   len        = (int)(sampleRate * duration);
+            float[] samples  = new float[len];
+
+            float[] freqs = { 523f, 659f, 784f }; // C5, E5, G5
+
+            for (int i = 0; i < len; i++)
+            {
+                float t = (float)i / sampleRate;
+
+                // Gentle attack (0–0.1s), sustain, fade (last 0.3s)
+                float attack  = Mathf.Min(t / 0.1f, 1f);
+                float release = Mathf.Min((duration - t) / 0.3f, 1f);
+                float env     = Mathf.Clamp01(attack * release);
+
+                float sample = 0f;
+                foreach (float freq in freqs)
+                    sample += Mathf.Sin(2f * Mathf.PI * freq * t) * 0.2f;
+
+                samples[i] = Mathf.Clamp(sample * env, -1f, 1f);
+            }
+
+            AudioClip clip = AudioClip.Create("Chime", len, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
         }
     }
 }
