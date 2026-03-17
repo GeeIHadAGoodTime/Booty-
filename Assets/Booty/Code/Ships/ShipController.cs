@@ -74,6 +74,14 @@ namespace Booty.Ships
         private float _speedMultiplier = 1f;   // hull damage → speed penalty
         private float _turnMultiplier  = 1f;   // sail damage → turn penalty
 
+        // ── Upgrade / crew multipliers (set by ShipUpgradeManager / CrewManager) ──
+        private float _speedUpgradeMultiplier = 1f;  // sail upgrade → speed bonus
+        private float _turnUpgradeMultiplier  = 1f;  // sail upgrade → turn bonus
+        private float _crewSpeedMultiplier    = 1f;  // crew count → speed scaling
+
+        // ── Wind multiplier (set by WindSystem each frame) ───────────────
+        private float _windMultiplier = 1f;  // tailwind > 1, headwind < 1
+
         // ══════════════════════════════════════════════════════════════════
         //  Public API
         // ══════════════════════════════════════════════════════════════════
@@ -125,6 +133,38 @@ namespace Booty.Ships
             _turnMultiplier  = Mathf.Clamp(turn,  0.1f, 1f);
         }
 
+        /// <summary>
+        /// Apply upgrade multipliers for speed and turn rate.
+        /// Called by ShipUpgradeManager when a sail upgrade is purchased.
+        /// </summary>
+        /// <param name="speedMult">Speed multiplier bonus (e.g. 1.2 = +20% speed).</param>
+        /// <param name="turnMult">Turn-rate multiplier bonus (e.g. 1.1 = +10% turn).</param>
+        public void SetUpgradeMultipliers(float speedMult, float turnMult)
+        {
+            _speedUpgradeMultiplier = Mathf.Max(1f, speedMult);
+            _turnUpgradeMultiplier  = Mathf.Max(1f, turnMult);
+        }
+
+        /// <summary>
+        /// Apply crew-based speed scaling.
+        /// Called by CrewManager when crew count changes.
+        /// </summary>
+        /// <param name="mult">Speed multiplier from crew (0.75..1.0).</param>
+        public void SetCrewSpeedMultiplier(float mult)
+        {
+            _crewSpeedMultiplier = Mathf.Clamp(mult, 0.5f, 1.2f);
+        }
+
+        /// <summary>
+        /// Apply wind-based speed multiplier. Called every frame by WindSystem.
+        /// Values above 1.0 represent a tailwind bonus; below 1.0 a headwind penalty.
+        /// </summary>
+        /// <param name="mult">Wind multiplier (e.g. 1.35 = +35% tailwind, 0.75 = -25% headwind).</param>
+        public void SetWindMultiplier(float mult)
+        {
+            _windMultiplier = Mathf.Clamp(mult, 0.5f, 1.5f);
+        }
+
         // ══════════════════════════════════════════════════════════════════
         //  Update Loop
         // ══════════════════════════════════════════════════════════════════
@@ -157,9 +197,13 @@ namespace Booty.Ships
         {
             float dt = Time.deltaTime;
 
-            // Apply damage multipliers to base stats
-            float effectiveMaxSpeed = maxSpeed * _speedMultiplier;
-            float effectiveTurnRate = turnRate * _turnMultiplier;
+            // Apply damage, upgrade, crew, and wind multipliers to base stats
+            float effectiveMaxSpeed = maxSpeed * _speedMultiplier
+                                    * _speedUpgradeMultiplier
+                                    * _crewSpeedMultiplier
+                                    * _windMultiplier;        // wind: tailwind > 1, headwind < 1
+            float effectiveTurnRate = turnRate * _turnMultiplier
+                                    * _turnUpgradeMultiplier;
 
             // ── Acceleration / deceleration ─────────────────────────────
             float targetSpeed = throttle * effectiveMaxSpeed;

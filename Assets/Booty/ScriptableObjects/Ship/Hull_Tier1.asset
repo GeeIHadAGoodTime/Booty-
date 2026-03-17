@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f601234567890abcdef012, type: 3}
+  m_Name: Hull_Tier1
+  m_EditorClassIdentifier:
+  upgradeType: 0
+  tier: 1
+  displayName: Reinforced Planking
+  description: 'Extra layers of seasoned oak bolted to the hull. Adds 20 HP to your maximum hull integrity.'
+  cost: 200
+  hullBonus: 20
+  speedBonus: 0
+  turnBonus: 0
+  cannonDamageBonus: 0

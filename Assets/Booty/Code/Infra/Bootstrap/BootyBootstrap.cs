@@ -81,21 +81,39 @@ namespace Booty.Bootstrap
         [Tooltip("Maximum cargo weight the player's hold can carry.")]
         [SerializeField] private int playerCargoCapacity = 100;
 
+        [Header("Ship Upgrades")]
+        [Tooltip("Assign all 9 ShipUpgradeData assets here " +
+                 "(Hull T1-3, Sails T1-3, Cannons T1-3). " +
+                 "Located in Assets/Booty/ScriptableObjects/Ship/.")]
+        [SerializeField] private System.Collections.Generic.List<ShipUpgradeData> shipUpgradeAssets = new();
+
+        [Header("Crew")]
+        [Tooltip("Starting crew count for the player ship. Crew affects speed + combat.")]
+        [SerializeField] private int startingCrewCount = 5;
+
+        [Header("World Map (S3-WorldNav)")]
+        [Tooltip("Assign all 8 PortData ScriptableObject assets here. " +
+                 "Leave empty to use the built-in Caribbean defaults.")]
+        [SerializeField] private System.Collections.Generic.List<PortData> portDataAssets = new();
+
         // ══════════════════════════════════════════════════════════════════
         //  Private State
         // ══════════════════════════════════════════════════════════════════
 
-        private EconomySystem   _economySystem;
-        private RenownSystem    _renownSystem;
-        private QuestManager    _questManager;
-        private TradeManager    _tradeManager;
-        private CargoInventory  _cargoInventory;
-        private CombatVFX       _combatVFX;
-        private ParticleManager _particleManager;   // S3.2: wake trails + debris
-        private GameOverUI      _gameOverUI;
-        private PortScreenUI    _portScreenUI;
-        private CapturePopup    _capturePopup;
-        private AudioManager    _audioManager;
+        private EconomySystem      _economySystem;
+        private RenownSystem       _renownSystem;
+        private QuestManager       _questManager;
+        private TradeManager       _tradeManager;
+        private CargoInventory     _cargoInventory;
+        private CombatVFX          _combatVFX;
+        private ParticleManager    _particleManager;       // S3.2: wake trails + debris
+        private GameOverUI         _gameOverUI;
+        private PortScreenUI       _portScreenUI;
+        private CapturePopup       _capturePopup;
+        private AudioManager       _audioManager;
+        private SaveManager        _saveManager;           // S2-SAVE: multi-slot + AutoSave
+        private ShipUpgradeManager _shipUpgradeManager;   // S2-UPGRADES: hull/sails/cannons
+        private CrewManager        _crewManager;           // S2-CREW: hire/dismiss sailors
 
         // ══════════════════════════════════════════════════════════════════
         //  Boot Sequence
@@ -117,6 +135,12 @@ namespace Booty.Bootstrap
             var saveGO     = new GameObject("SaveSystem");
             var saveSystem = saveGO.AddComponent<SaveSystem>();
             saveSystem.Initialize();
+
+            // ── 2b. Save Manager (S2-SAVE: multi-slot + AutoSave) ────────────
+            // SaveManager is initialized later (step 12b) once the player ship
+            // and all gameplay systems are available.
+            var saveManagerGO = new GameObject("SaveManager");
+            _saveManager = saveManagerGO.AddComponent<SaveManager>();
 
             // ── 3. Config Service ────────────────────────────────────────────
             var configGO      = new GameObject("ConfigService");
@@ -295,6 +319,31 @@ namespace Booty.Bootstrap
                 }
             };
 
+            // ── 12b. Save Manager: wire to live systems + restore auto-save ──
+            // Must come after player ship (for ShipController ref) and after all
+            // gameplay systems (EconomySystem, CargoInventory, QuestManager, PortSystem).
+            _saveManager.Initialize(_economySystem, _cargoInventory, shipController, portSystem);
+            // Restore the auto-save slot on game start (no-op if no save exists).
+            _saveManager.Load(SaveManager.AUTO_SAVE_SLOT);
+
+            // ── 12c. Ship Upgrade Manager (S2-UPGRADES) ──────────────────────
+            // Tracks which upgrade tiers have been purchased (Hull / Sails / Cannons)
+            // and applies stat bonuses to the player's ship components.
+            // Assign the 9 ShipUpgradeData assets in the Inspector.
+            var upgradeGO       = new GameObject("ShipUpgradeManager");
+            _shipUpgradeManager = upgradeGO.AddComponent<ShipUpgradeManager>();
+            _shipUpgradeManager.Initialize(
+                shipController, hpSystem, broadside, _economySystem,
+                baseMaxHP: balance.playerMaxHP,
+                assets:    shipUpgradeAssets);
+
+            // ── 12d. Crew Manager (S2-CREW) ──────────────────────────────────
+            // Tracks crew count, handles hire/dismiss, and applies crew-based
+            // speed/combat multipliers to the player's ship.
+            var crewGO    = new GameObject("CrewManager");
+            _crewManager  = crewGO.AddComponent<CrewManager>();
+            _crewManager.Initialize(_economySystem, shipController, startingCrewCount);
+
             // ── 13. Isometric Camera ─────────────────────────────────────────
             var cameraGO = new GameObject("IsometricCamera");
             var cam      = cameraGO.AddComponent<Camera>();
@@ -318,6 +367,27 @@ namespace Booty.Bootstrap
             var spawnerGO    = new GameObject("EnemySpawner");
             var enemySpawner = spawnerGO.AddComponent<EnemySpawner>();
             enemySpawner.Initialize(portSystem, _renownSystem, _economySystem, playerGO.transform, balance); // S3.6
+
+            // ── 15b. World Map Manager (S3-WorldNav) ─────────────────────────
+            // Tracks port discovery (fog of war). Falls back to 8 built-in
+            // Caribbean ports if portDataAssets is empty.
+            var worldMapGO  = new GameObject("WorldMapManager");
+            var worldMap    = worldMapGO.AddComponent<WorldMapManager>();
+            if (portDataAssets != null && portDataAssets.Count > 0)
+                worldMap.portDataAssets.AddRange(portDataAssets);
+            worldMap.Initialize(playerGO.transform);
+
+            // ── 15c. Wind System (S3-WorldNav) ───────────────────────────────
+            // Simulates Caribbean trade winds. Applies speed multiplier to the
+            // player ship each frame (tailwind bonus / headwind penalty).
+            var windGO  = new GameObject("WindSystem");
+            var wind    = windGO.AddComponent<WindSystem>();
+            wind.RegisterPlayerShip(shipController);
+
+            // ── 15d. Navigation UI (S3-WorldNav) ─────────────────────────────
+            // Bottom-left overlay: nearby ports list + wind direction indicator.
+            var navUiGO = new GameObject("NavigationUI");
+            navUiGO.AddComponent<NavigationUI>();
 
             // ── 16. Initial Enemy Spawn ──────────────────────────────────────
             SpawnEnemies(playerGO.transform);

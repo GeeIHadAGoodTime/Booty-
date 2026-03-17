@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f601234567890abcdef012, type: 3}
+  m_Name: Sails_Tier1
+  m_EditorClassIdentifier:
+  upgradeType: 1
+  tier: 1
+  displayName: Canvas Sails
+  description: 'Tightly-woven canvas cut to catch the trade winds. +10% speed, +5% turn rate.'
+  cost: 150
+  hullBonus: 0
+  speedBonus: 0.1
+  turnBonus: 0.05
+  cannonDamageBonus: 0

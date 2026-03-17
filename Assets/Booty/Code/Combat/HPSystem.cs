@@ -87,6 +87,19 @@ namespace Booty.Combat
         }
 
         /// <summary>
+        /// Increase the maximum HP cap (e.g. from hull upgrade) without resetting
+        /// current HP. CurrentHP is clamped to the new max.
+        /// Safe to call after Configure() — does NOT reset current HP to full.
+        /// </summary>
+        /// <param name="newMax">The new maximum HP. Must be at least 1.</param>
+        public void SetMaxHP(int newMax)
+        {
+            maxHP     = Mathf.Max(1, newMax);
+            CurrentHP = Mathf.Clamp(CurrentHP, 1, maxHP);
+            OnDamaged?.Invoke(CurrentHP, maxHP);
+        }
+
+        /// <summary>
         /// Restore HP (repairs, etc.). Clamped to maxHP.
         /// </summary>
         public void Heal(int amount)

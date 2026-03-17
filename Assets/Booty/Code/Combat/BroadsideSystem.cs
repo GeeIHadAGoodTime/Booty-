@@ -39,6 +39,9 @@ namespace Booty.Combat
         private float _portCooldownTimer;
         private float _starboardCooldownTimer;
 
+        // Upgrade multiplier applied to broadside damage (default 1.0 = no bonus)
+        private float _damageBonusMultiplier = 1f;
+
         /// <summary>True if the port (left) broadside is ready to fire.</summary>
         public bool PortReady => _portCooldownTimer <= 0f;
 
@@ -64,6 +67,16 @@ namespace Booty.Combat
         // ══════════════════════════════════════════════════════════════════
         //  Initialization
         // ══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Apply a cannon-upgrade damage multiplier.
+        /// Called by ShipUpgradeManager when a cannon upgrade is purchased.
+        /// </summary>
+        /// <param name="multiplier">e.g. 1.25 = +25% damage.</param>
+        public void SetDamageBonusMultiplier(float multiplier)
+        {
+            _damageBonusMultiplier = Mathf.Max(1f, multiplier);
+        }
 
         /// <summary>
         /// Wire the owning ShipController. Called by BootyBootstrap.
@@ -198,7 +211,8 @@ namespace Booty.Combat
                 float angleOffset = t * spreadAngle;
                 Vector3 dir = Quaternion.Euler(0f, angleOffset, 0f) * baseDirection;
 
-                Projectile.Spawn(spawnOrigin, dir, damage, gameObject);
+                int effectiveDamage = Mathf.RoundToInt(damage * _damageBonusMultiplier);
+                Projectile.Spawn(spawnOrigin, dir, effectiveDamage, gameObject);
             }
 
             OnBroadsideFired?.Invoke(transform.position);
