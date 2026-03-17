@@ -27,6 +27,13 @@ namespace Booty.Save
 
         // ---- Economy state ----
         public EconomySaveData economy = new EconomySaveData();
+
+        // ---- Captured port IDs (player-owned ports) ----
+        public List<string> capturedPortIds = new List<string>();
+
+        // ---- World state ----
+        public int difficultyLevel = 0;
+        public int enemySpawnSeed = 0;
     }
 
     /// <summary>
@@ -43,6 +50,8 @@ namespace Booty.Save
         public float positionX = 0f;
         public float positionZ = 0f;
         public float rotationY = 0f;
+        public int currentHP = 0;
+        public int maxHP = 80;
     }
 
     /// <summary>

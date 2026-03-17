@@ -159,6 +159,104 @@ namespace Booty.Save
             SaveCurrent();
         }
 
+        /// <summary>
+        /// Capture full runtime state from live systems into CurrentState.
+        /// Call before SaveCurrent() to ensure all live data is persisted.
+        /// </summary>
+        /// <param name="playerHp">Player HPSystem — persists currentHull + maxHull.</param>
+        /// <param name="ship">Player ShipController — persists world position + rotation.</param>
+        /// <param name="portSystem">PortSystem — persists list of player-owned port IDs.</param>
+        /// <param name="difficultyLevel">Current difficulty level (0 = normal).</param>
+        /// <param name="enemySpawnSeed">Seed used by EnemySpawner for reproducible waves.</param>
+        public void CaptureFromSystems(
+            Booty.Combat.HPSystem playerHp,
+            Booty.Ships.ShipController ship,
+            Booty.Ports.PortSystem portSystem,
+            int difficultyLevel = 0,
+            int enemySpawnSeed = 0)
+        {
+            if (CurrentState == null)
+                CurrentState = CreateNewState();
+
+            if (ship != null)
+            {
+                CurrentState.player.positionX = ship.transform.position.x;
+                CurrentState.player.positionZ = ship.transform.position.z;
+                CurrentState.player.rotationY = ship.transform.eulerAngles.y;
+            }
+
+            if (playerHp != null)
+            {
+                CurrentState.playerShip.currentHull = playerHp.CurrentHP;
+                CurrentState.playerShip.maxHull     = playerHp.MaxHP;
+            }
+
+            if (portSystem != null)
+            {
+                CurrentState.capturedPortIds = new System.Collections.Generic.List<string>();
+                foreach (var kvp in portSystem.GetAllPorts())
+                {
+                    if (kvp.Value.factionOwner == "player_pirates")
+                        CurrentState.capturedPortIds.Add(kvp.Key);
+                }
+            }
+
+            CurrentState.difficultyLevel = difficultyLevel;
+            CurrentState.enemySpawnSeed  = enemySpawnSeed;
+
+            Debug.Log("[SaveSystem] CaptureFromSystems complete.");
+        }
+
+        /// <summary>
+        /// Restore CurrentState into live systems (position, HP, port ownership).
+        /// Call after LoadOrNew() to apply loaded state to the scene.
+        /// </summary>
+        /// <param name="playerHp">Player HPSystem — restores currentHull + maxHull.</param>
+        /// <param name="ship">Player ShipController — restores world position + rotation.</param>
+        /// <param name="portSystem">PortSystem — restores player-owned port ownership.</param>
+        public void RestoreToSystems(
+            Booty.Combat.HPSystem playerHp,
+            Booty.Ships.ShipController ship,
+            Booty.Ports.PortSystem portSystem)
+        {
+            if (CurrentState == null)
+            {
+                Debug.LogWarning("[SaveSystem] RestoreToSystems: CurrentState is null.");
+                return;
+            }
+
+            if (ship != null)
+            {
+                ship.transform.position = new Vector3(
+                    CurrentState.player.positionX,
+                    ship.transform.position.y,
+                    CurrentState.player.positionZ);
+                ship.transform.rotation = Quaternion.Euler(
+                    0f, CurrentState.player.rotationY, 0f);
+            }
+
+            if (playerHp != null)
+            {
+                int targetMax = CurrentState.playerShip.maxHull;
+                int targetCur = CurrentState.playerShip.currentHull;
+                if (targetMax > 0)
+                {
+                    playerHp.Configure(targetMax);   // resets CurrentHP to maxHull
+                    int deficit = targetMax - targetCur;
+                    if (deficit > 0)
+                        playerHp.TakeDamage(deficit); // reduce to saved currentHull
+                }
+            }
+
+            if (portSystem != null && CurrentState.capturedPortIds != null)
+            {
+                foreach (string portId in CurrentState.capturedPortIds)
+                    portSystem.SetPortOwner(portId, "player_pirates");
+            }
+
+            Debug.Log("[SaveSystem] RestoreToSystems complete.");
+        }
+
         private void OnApplicationQuit()
         {
             if (CurrentState != null)
