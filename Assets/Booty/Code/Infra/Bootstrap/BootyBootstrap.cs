@@ -33,6 +33,8 @@ using Booty.VFX;
 using Booty.Audio;
 using Booty.Balance;
 using Booty.Quests;
+using Booty.Faction;
+using Booty.AI;
 
 namespace Booty.Bootstrap
 {
@@ -96,6 +98,18 @@ namespace Booty.Bootstrap
                  "Leave empty to use the built-in Caribbean defaults.")]
         [SerializeField] private System.Collections.Generic.List<PortData> portDataAssets = new();
 
+        [Header("Faction & Reputation")]
+        [Tooltip("Assign the 4 FactionDataSO assets here " +
+                 "(British, Spanish, French, Pirates). " +
+                 "Located in Assets/Booty/ScriptableObjects/Faction/.")]
+        [SerializeField] private System.Collections.Generic.List<FactionDataSO> factionAssets = new();
+
+        [Header("AI Enemy Spawner — Open Waters")]
+        [Tooltip("Optional LootTable ScriptableObject for tiered loot drops (gold, cargo, ship capture). " +
+                 "Create via Assets → Create → Booty → Combat → LootTable. " +
+                 "If null, built-in Caribbean defaults are used automatically.")]
+        [SerializeField] private LootTable lootTableAsset;
+
         // ══════════════════════════════════════════════════════════════════
         //  Private State
         // ══════════════════════════════════════════════════════════════════
@@ -114,6 +128,9 @@ namespace Booty.Bootstrap
         private SaveManager        _saveManager;           // S2-SAVE: multi-slot + AutoSave
         private ShipUpgradeManager _shipUpgradeManager;   // S2-UPGRADES: hull/sails/cannons
         private CrewManager        _crewManager;           // S2-CREW: hire/dismiss sailors
+        private ReputationManager  _reputationManager;     // Faction reputation tracker
+        private Booty.AI.EnemySpawner _regionEnemySpawner; // Open-water region danger spawner
+        private ShipController     _playerShipController;  // Cached for NavalEncounter wiring
 
         // ══════════════════════════════════════════════════════════════════
         //  Boot Sequence
@@ -266,6 +283,7 @@ namespace Booty.Bootstrap
 
             var shipController = playerGO.GetComponent<ShipController>()
                                  ?? playerGO.AddComponent<ShipController>();
+            _playerShipController = shipController; // Cache for NavalEncounter wiring
             var hpSystem       = playerGO.GetComponent<HPSystem>()
                                  ?? playerGO.AddComponent<HPSystem>();
             var broadside      = playerGO.GetComponent<BroadsideSystem>()
@@ -389,7 +407,23 @@ namespace Booty.Bootstrap
             var navUiGO = new GameObject("NavigationUI");
             navUiGO.AddComponent<NavigationUI>();
 
-            // ── 16. Initial Enemy Spawn ──────────────────────────────────────
+            // ── 15e. Region Enemy Spawner (AI namespace — open-water danger zones) ──
+            // Complements the port-based EnemySpawner (step 15) with open-water patrols.
+            // Uses RegionZone danger levels (1–5) to scale enemy count and strength.
+            // Leave regions list empty in Inspector to use 5 built-in Caribbean defaults.
+            var regionSpawnerGO  = new GameObject("RegionEnemySpawner");
+            _regionEnemySpawner  = regionSpawnerGO.AddComponent<Booty.AI.EnemySpawner>();
+            _regionEnemySpawner.Initialize(playerGO.transform);
+
+            // ── 16. Reputation Manager (Faction System) ─────────────────────
+            // Must be created before SpawnEnemies so that enemy kill callbacks can
+            // call _reputationManager.ModifyReputation immediately.
+            // Assign the 4 FactionDataSO assets to factionAssets in the Inspector.
+            var repGO = new GameObject("ReputationManager");
+            _reputationManager = repGO.AddComponent<ReputationManager>();
+            _reputationManager.Initialize(factionAssets);
+
+            // ── 17. Initial Enemy Spawn ──────────────────────────────────────
             SpawnEnemies(playerGO.transform);
         }
 
@@ -450,17 +484,24 @@ namespace Booty.Bootstrap
                 ai.Initialize(playerTransform, sc, bs, hp);
                 bs.Initialize(sc);
 
-                // S2.2: Wire enemy death → combat rewards
+                // S2.2: Wire enemy death → combat rewards + faction reputation
                 var meta = enemyGO.GetComponent<EnemyMetadata>();
                 if (meta == null) meta = enemyGO.AddComponent<EnemyMetadata>();
                 if (meta.tier <= 0) meta.tier = 1;
                 int    enemyTier    = meta.tier;
                 string enemyFaction = meta.sourceFaction ?? "";
+
+                // Wire AI faction so reputation system governs aggro
+                var aiComp = enemyGO.GetComponent<EnemyAI>();
+                if (aiComp != null) aiComp.FactionId = enemyFaction;
+
                 hp.OnDestroyed += () =>
                 {
-                    if (_economySystem != null) _economySystem.AwardCombatSpoils(enemyTier);
-                    if (_renownSystem  != null) _renownSystem.AwardKillRenown(enemyTier);
-                    if (_questManager  != null) _questManager.ReportKill(enemyFaction); // S3.3: quest progress
+                    if (_economySystem    != null) _economySystem.AwardCombatSpoils(enemyTier);
+                    if (_renownSystem     != null) _renownSystem.AwardKillRenown(enemyTier);
+                    if (_questManager     != null) _questManager.ReportKill(enemyFaction); // S3.3: quest progress
+                    // Attacking a faction's ships lowers reputation with that faction
+                    _reputationManager?.ModifyReputation(enemyFaction, -10f);
                 };
                 var lootPopup = enemyGO.AddComponent<Booty.UI.LootPopup>();
                 // S3.6: Use balance values for loot popup if available
@@ -479,6 +520,37 @@ namespace Booty.Bootstrap
                 // S3.1: Enemy HP bar (red, shown when hit)
                 var enemyHPBar = enemyGO.AddComponent<ShipHPBar>();
                 enemyHPBar.Initialize(hp, isPlayer: false);
+
+                // Naval Encounter — pre-battle dialogue (Fight / Surrender / Flee)
+                // Triggers once when the player enters aggro range for the first time.
+                var encounter = enemyGO.AddComponent<NavalEncounter>();
+                encounter.Initialize(playerTransform, _playerShipController, _cargoInventory);
+
+                // LootTable — tiered loot on death: bonus gold, cargo drop IDs, ship capture
+                hp.OnDestroyed += () =>
+                {
+                    float diffMult = activeBalance != null
+                        ? Mathf.Max(0.5f, activeBalance.combatRewardPerTier / 35f)
+                        : 1f;
+                    var loot = lootTableAsset != null
+                        ? lootTableAsset.Roll(enemyTier, diffMult)
+                        : LootTable.RollDefault(enemyTier, diffMult);
+
+                    // Award bonus gold from LootTable (additive to AwardCombatSpoils)
+                    if (_economySystem != null && loot.Gold > 0)
+                        _economySystem.AddGold(loot.Gold);
+
+                    // Log cargo drop IDs — resolved to GoodsData assets in future sprint
+                    foreach (var cargo in loot.Cargo)
+                        Debug.Log($"[BootyBootstrap] Loot drop: {cargo.quantity}× {cargo.goodsId}");
+
+                    // Ship capture opportunity — show CapturePopup with ship prize message
+                    if (loot.ShipCaptureOffered)
+                    {
+                        _capturePopup?.ShowCapture(enemyGO.name, enemyFaction, loot.Gold * 2f);
+                        Debug.Log($"[BootyBootstrap] Ship capture offered: {enemyGO.name}");
+                    }
+                };
             }
         }
 
