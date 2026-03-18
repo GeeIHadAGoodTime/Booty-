@@ -100,6 +100,12 @@ namespace Booty.UI
                 if (_victoryTimer <= 0f && _victoryBannerText != null)
                     _victoryBannerText.gameObject.SetActive(false);
             }
+
+            // Keyboard tab shortcuts: 1=Repair 2=Trade 3=Recruit 4=Upgrade
+            if (Input.GetKeyDown(KeyCode.Alpha1)) ShowTab("repair");
+            if (Input.GetKeyDown(KeyCode.Alpha2)) ShowTab("trade");
+            if (Input.GetKeyDown(KeyCode.Alpha3)) ShowTab("recruit");
+            if (Input.GetKeyDown(KeyCode.Alpha4)) ShowTab("upgrade");
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -290,10 +296,10 @@ namespace Booty.UI
             float tabGap  = 120f;
             float tabStartX = -tabGap * 1.5f;
 
-            _tabRepair  = MakeTabButton(panelGO, "REPAIR",   new Vector2(tabStartX + 0 * tabGap, tabY), out _tabRepairLabel);
-            _tabTrade   = MakeTabButton(panelGO, "TRADE",    new Vector2(tabStartX + 1 * tabGap, tabY), out _tabTradeLabel);
-            _tabRecruit = MakeTabButton(panelGO, "RECRUIT",  new Vector2(tabStartX + 2 * tabGap, tabY), out _tabRecruitLabel);
-            _tabUpgrade = MakeTabButton(panelGO, "UPGRADE",  new Vector2(tabStartX + 3 * tabGap, tabY), out _tabUpgradeLabel);
+            _tabRepair  = MakeTabButton(panelGO, "1-REPAIR",  new Vector2(tabStartX + 0 * tabGap, tabY), out _tabRepairLabel);
+            _tabTrade   = MakeTabButton(panelGO, "2-TRADE",   new Vector2(tabStartX + 1 * tabGap, tabY), out _tabTradeLabel);
+            _tabRecruit = MakeTabButton(panelGO, "3-RECRUIT", new Vector2(tabStartX + 2 * tabGap, tabY), out _tabRecruitLabel);
+            _tabUpgrade = MakeTabButton(panelGO, "4-UPGRADE", new Vector2(tabStartX + 3 * tabGap, tabY), out _tabUpgradeLabel);
 
             // S3.4: Play UI click SFX on tab changes
             _tabRepair.onClick.AddListener(() => { FindObjectOfType<Booty.Audio.AudioManager>()?.PlayClick(); ShowTab("repair"); });

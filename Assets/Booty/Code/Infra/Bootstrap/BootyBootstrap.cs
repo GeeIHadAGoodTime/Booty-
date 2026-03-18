@@ -510,6 +510,8 @@ namespace Booty.Bootstrap
                     _reputationManager?.ModifyReputation(enemyFaction, -10f);
                     // Tutorial: notify first kill for hint 3
                     _tutorialManager?.NotifyEnemyKilled();
+                    // HUD kill counter
+                    FindObjectOfType<HUDManager>()?.RegisterKill();
                 };
                 var lootPopup = enemyGO.AddComponent<Booty.UI.LootPopup>();
                 // S3.6: Use balance values for loot popup if available

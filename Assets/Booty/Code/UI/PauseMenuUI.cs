@@ -28,6 +28,10 @@ namespace Booty.UI
         private Slider     _volumeSlider;
         private bool       _isPaused;
 
+        // Time played tracking
+        private float _totalPlayTime  = 0f;
+        private Text  _timePlayedText;
+
         // ══════════════════════════════════════════════════════════════════
         //  Pirate palette
         // ══════════════════════════════════════════════════════════════════
@@ -51,6 +55,9 @@ namespace Booty.UI
 
         private void Update()
         {
+            // Accumulate play time only while unpaused
+            if (!_isPaused) _totalPlayTime += Time.unscaledDeltaTime;
+
             if (!Input.GetKeyDown(KeyCode.Escape)) return;
 
             // Priority: close PortScreenUI first if open
@@ -84,6 +91,20 @@ namespace Booty.UI
             _root.SetActive(paused);
             if (_settingsPanel != null && !paused)
                 _settingsPanel.SetActive(false);
+
+            // Update time-played display when pausing
+            if (paused && _timePlayedText != null)
+                _timePlayedText.text = "Time Played: " + FormatTime(_totalPlayTime);
+        }
+
+        private static string FormatTime(float seconds)
+        {
+            int h = (int)(seconds / 3600);
+            int m = (int)((seconds % 3600) / 60);
+            int s = (int)(seconds % 60);
+            return h > 0
+                ? string.Format("{0}h {1:D2}m {2:D2}s", h, m, s)
+                : string.Format("{0}m {1:D2}s", m, s);
         }
 
         private void Resume()
@@ -164,7 +185,7 @@ namespace Booty.UI
             var pRect = panelGO.AddComponent<RectTransform>();
             pRect.anchorMin = new Vector2(0.5f, 0.5f); pRect.anchorMax = new Vector2(0.5f, 0.5f);
             pRect.pivot = new Vector2(0.5f, 0.5f);
-            pRect.anchoredPosition = Vector2.zero; pRect.sizeDelta = new Vector2(320f, 260f);
+            pRect.anchoredPosition = Vector2.zero; pRect.sizeDelta = new Vector2(320f, 290f);
             panelGO.AddComponent<Image>().color = PanelBg;
             AddOutline(panelGO, GoldDim);
 
@@ -173,10 +194,15 @@ namespace Booty.UI
                 new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(280f, 40f),
                 28, FontStyle.Bold, GoldColor, TextAnchor.MiddleCenter);
 
-            // Buttons
-            MakeButton(panelGO, "Resume",      new Vector2(0f,  60f), Resume);
-            MakeButton(panelGO, "Settings",    new Vector2(0f,   4f), ShowSettingsPanel);
-            MakeButton(panelGO, "Quit To Menu",new Vector2(0f, -52f), QuitToMenu);
+            // Time played (updates each time the menu opens)
+            _timePlayedText = MakeText(panelGO, "TimePlayed", "Time Played: 0m 00s",
+                new Vector2(0.5f, 1f), new Vector2(0f, -68f), new Vector2(280f, 24f),
+                13, FontStyle.Normal, new Color(0.7f, 0.7f, 0.7f), TextAnchor.MiddleCenter);
+
+            // Buttons (shifted down 20px to accommodate time text)
+            MakeButton(panelGO, "Resume",      new Vector2(0f,  40f), Resume);
+            MakeButton(panelGO, "Settings",    new Vector2(0f, -16f), ShowSettingsPanel);
+            MakeButton(panelGO, "Quit To Menu",new Vector2(0f, -72f), QuitToMenu);
 
             _root = overlayGO;
 
