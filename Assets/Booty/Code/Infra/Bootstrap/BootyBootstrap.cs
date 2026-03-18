@@ -455,6 +455,7 @@ namespace Booty.Bootstrap
                     : CreateFallbackEnemyShip(spawnPos);
 
                 enemyGO.name = $"EnemyShip_{i}";
+                enemyGO.tag  = "Enemy"; // Required for tag-based queries (PortInteraction, NavalEncounter)
 
                 // Ensure required components
                 var ai = enemyGO.GetComponent<EnemyAI>();

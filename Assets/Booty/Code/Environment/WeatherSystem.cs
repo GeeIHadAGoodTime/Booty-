@@ -287,6 +287,7 @@ namespace Booty.World
             go.transform.localRotation = Quaternion.Euler(12f, 0f, 0f);
 
             var ps   = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main;
             main.loop            = true;
             main.playOnAwake     = false;

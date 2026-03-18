@@ -177,7 +177,14 @@ namespace Booty.Ships
             var meshRenderer = _modelGO.GetComponent<MeshRenderer>()
                                ?? _modelGO.AddComponent<MeshRenderer>();
 
-            _hullMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"))
+            var shader = Shader.Find("Universal Render Pipeline/Lit")
+                         ?? Shader.Find("Standard");
+            if (shader == null)
+            {
+                Debug.LogWarning("[ShipVisual] No shader found — using fallback diffuse.");
+                shader = Shader.Find("Hidden/InternalErrorShader");
+            }
+            _hullMaterial = new Material(shader)
             {
                 color = new Color(0.50f, 0.12f, 0.12f) // default until Configure()
             };
@@ -315,7 +322,14 @@ namespace Booty.Ships
             var col = _mastGO.GetComponent<Collider>();
             if (col != null) Object.Destroy(col);
 
-            var mastMat = new Material(Shader.Find("Universal Render Pipeline/Lit"))
+            var mastShader = Shader.Find("Universal Render Pipeline/Lit")
+                            ?? Shader.Find("Standard");
+            if (mastShader == null)
+            {
+                Debug.LogWarning("[ShipVisual] Mast: no shader found — using fallback.");
+                mastShader = Shader.Find("Hidden/InternalErrorShader");
+            }
+            var mastMat = new Material(mastShader)
             {
                 color = new Color(0.35f, 0.22f, 0.12f)
             };
@@ -341,7 +355,14 @@ namespace Booty.Ships
             var mf = _sailGO.AddComponent<MeshFilter>();
             var mr = _sailGO.AddComponent<MeshRenderer>();
 
-            _sailMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
+            var sailShader = Shader.Find("Universal Render Pipeline/Unlit")
+                            ?? Shader.Find("Standard");
+            if (sailShader == null)
+            {
+                Debug.LogWarning("[ShipVisual] Sail: no shader found — using fallback.");
+                sailShader = Shader.Find("Hidden/InternalErrorShader");
+            }
+            _sailMaterial = new Material(sailShader)
             {
                 color = new Color(0.95f, 0.92f, 0.85f) // default off-white; Configure() overrides
             };
@@ -410,7 +431,14 @@ namespace Booty.Ships
             _wakeTrail.endWidth    = 0.05f;
             _wakeTrail.emitting    = false;
 
-            var wakeMat = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
+            var wakeShader = Shader.Find("Universal Render Pipeline/Unlit")
+                            ?? Shader.Find("Standard");
+            if (wakeShader == null)
+            {
+                Debug.LogWarning("[ShipVisual] Wake: no shader found — using fallback.");
+                wakeShader = Shader.Find("Hidden/InternalErrorShader");
+            }
+            var wakeMat = new Material(wakeShader)
             {
                 color = new Color(0.85f, 0.90f, 0.95f, 0.60f)
             };

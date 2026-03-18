@@ -118,7 +118,14 @@ namespace Booty.Combat
             var rend = go.GetComponent<Renderer>();
             if (rend != null)
             {
-                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                var lootShader = Shader.Find("Universal Render Pipeline/Lit")
+                                ?? Shader.Find("Standard");
+                if (lootShader == null)
+                {
+                    Debug.LogWarning("[LootDrop] No shader found for loot crate — using fallback.");
+                    lootShader = Shader.Find("Hidden/InternalErrorShader");
+                }
+                var mat = new Material(lootShader);
                 mat.color = new Color(1.0f, 0.80f, 0.1f); // gold
                 rend.material = mat;
             }
