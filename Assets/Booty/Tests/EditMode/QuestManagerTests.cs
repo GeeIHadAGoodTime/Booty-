@@ -79,11 +79,11 @@ namespace Booty.Tests
             var ids = new HashSet<string>();
             foreach (var q in quests) ids.Add(q.questId);
 
-            Assert.Contains("quest_treasure_hunt",         ids, "Treasure hunt quest missing");
-            Assert.Contains("quest_escort_merchant",        ids, "Escort quest missing");
-            Assert.Contains("quest_defeat_pirate_captain",  ids, "Defeat captain quest missing");
-            Assert.Contains("quest_deliver_cargo",          ids, "Deliver cargo quest missing");
-            Assert.Contains("quest_explore_island",         ids, "Explore island quest missing");
+            Assert.IsTrue(ids.Contains("quest_treasure_hunt"),        "Treasure hunt quest missing");
+            Assert.IsTrue(ids.Contains("quest_escort_merchant"),       "Escort quest missing");
+            Assert.IsTrue(ids.Contains("quest_defeat_pirate_captain"), "Defeat captain quest missing");
+            Assert.IsTrue(ids.Contains("quest_deliver_cargo"),         "Deliver cargo quest missing");
+            Assert.IsTrue(ids.Contains("quest_explore_island"),        "Explore island quest missing");
         }
 
         // ── Test 2: QuestManager initialises all Available ──────────────────

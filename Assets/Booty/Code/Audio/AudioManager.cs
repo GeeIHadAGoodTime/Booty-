@@ -246,34 +246,39 @@ namespace Booty.Audio
         }
 
         /// <summary>
-        /// Two-tone coin sound: 1400 Hz attack into 1800 Hz fade (0.3s).
+        /// Satisfying metallic coin strike: harmonic series (1200, 2400, 3600, 4800 Hz)
+        /// with 8 ms sharp attack and 6-rate exponential ring-out over 0.5 s.
+        /// Subtle per-overtone inharmonicity replicates the natural detuning of metal.
         /// </summary>
         private static AudioClip CreateGoldCoinClip()
         {
             int   sampleRate = 44100;
-            float duration   = 0.3f;
+            float duration   = 0.5f;
             int   len        = (int)(sampleRate * duration);
             float[] samples  = new float[len];
 
+            // Harmonic series: fundamental + overtones for a metallic bell-like coin strike
+            float[] harmonics = { 1200f, 2400f, 3600f, 4800f };
+            float[] weights   = { 0.55f,  0.28f,  0.12f,  0.05f };
+
             for (int i = 0; i < len; i++)
             {
-                float t      = (float)i / sampleRate;
-                float sample;
+                float t = (float)i / sampleRate;
 
-                if (t < 0.1f)
+                // Very sharp 8 ms attack then exponential ring-out
+                float attack = Mathf.Min(t / 0.008f, 1f);
+                float decay  = Mathf.Exp(-t * 6f);
+                float env    = attack * decay;
+
+                float sample = 0f;
+                for (int h = 0; h < harmonics.Length; h++)
                 {
-                    // First 0.1s: 1400 Hz with attack
-                    float attack = Mathf.Min(t / 0.02f, 1f);
-                    sample = Mathf.Sin(2f * Mathf.PI * 1400f * t) * attack * 0.7f;
-                }
-                else
-                {
-                    // 0.1–0.3s: 1800 Hz fading out
-                    float fade = 1f - (t - 0.1f) / 0.2f;
-                    sample = Mathf.Sin(2f * Mathf.PI * 1800f * t) * fade * 0.7f;
+                    // Slight natural inharmonicity per overtone (real metal is never perfectly tuned)
+                    float detune = 1f + 0.003f * Mathf.Sin(2f * Mathf.PI * (8f + h * 2f) * t);
+                    sample += Mathf.Sin(2f * Mathf.PI * harmonics[h] * detune * t) * weights[h];
                 }
 
-                samples[i] = Mathf.Clamp(sample, -1f, 1f);
+                samples[i] = Mathf.Clamp(sample * env, -1f, 1f);
             }
 
             AudioClip clip = AudioClip.Create("GoldCoin", len, 1, sampleRate, false);

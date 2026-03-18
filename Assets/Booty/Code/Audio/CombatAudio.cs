@@ -100,25 +100,36 @@ namespace Booty.Audio
         // ══════════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Low cannon-boom: 60% sine at 80 Hz + 40% white noise, 0.5 s, exponential decay.
+        /// Punchy cannon-boom: sharp 220 Hz transient crack on attack + swept 90→45 Hz body,
+        /// heavier noise mix (50%), fast decay (rate 14), 0.7 s. Frequency sweep mimics
+        /// the pressure-wave pitch drop heard in real cannon fire.
         /// </summary>
         private static AudioClip CreateCannonFireClip()
         {
-            const int   frequency   = 44100;
-            const float duration    = 0.5f;
-            const float sineFreq    = 80f;
-            const float decayRate   = 8f;
+            const int   frequency = 44100;
+            const float duration  = 0.7f;
+            const float decayRate = 14f;
 
             int     sampleCount = Mathf.RoundToInt(frequency * duration);
             float[] samples     = new float[sampleCount];
 
             for (int i = 0; i < sampleCount; i++)
             {
-                float t         = (float)i / frequency;
-                float envelope  = Mathf.Exp(-t * decayRate);
-                float sine      = Mathf.Sin(2f * Mathf.PI * sineFreq * t) * 0.8f;
-                float noise     = (Random.value * 2f - 1f) * 0.3f;
-                samples[i]      = (sine * 0.6f + noise * 0.4f) * envelope;
+                float t        = (float)i / frequency;
+
+                // Frequency sweep: 90 Hz → 45 Hz pitch drop for cannon recoil feel
+                float sineFreq = Mathf.Lerp(90f, 45f, t / duration);
+                float envelope = Mathf.Exp(-t * decayRate);
+
+                // Sharp transient crack at attack (first ~10 ms)
+                float crack    = Mathf.Sin(2f * Mathf.PI * 220f * t) * Mathf.Exp(-t * 80f) * 0.6f;
+
+                // Deep boom body with heavier noise mix
+                float sine     = Mathf.Sin(2f * Mathf.PI * sineFreq * t) * 0.8f;
+                float noise    = (Random.value * 2f - 1f) * 0.5f;
+                float boom     = (sine * 0.5f + noise * 0.5f) * envelope;
+
+                samples[i] = Mathf.Clamp(boom + crack, -1f, 1f);
             }
 
             AudioClip clip = AudioClip.Create("CannonFire", sampleCount, 1, frequency, false);

@@ -19,10 +19,6 @@ namespace Booty.Economy
         [SerializeField] private float globalIncomeScalar = 1.0f;
         [SerializeField] private float startingGold = 300f;
 
-        [Header("Combat Spoils")]
-        [SerializeField] private float baseCombatReward = 80f;
-        [SerializeField] private float combatRewardPerTier = 35f;
-
         /// <summary>Fired when gold changes. Args: newGoldTotal, delta.</summary>
         public event Action<float, float> OnGoldChanged;
 
@@ -32,6 +28,7 @@ namespace Booty.Economy
         private PortSystem _portSystem;
         private SaveSystem _saveSystem;
         private float _incomeTimer;
+        private GameBalance _balance;
 
         /// <summary>Current player gold total.</summary>
         public float Gold { get; private set; }
@@ -44,14 +41,13 @@ namespace Booty.Economy
         public void ConfigureBalance(GameBalance balance)
         {
             if (balance == null) return;
+            _balance              = balance;
             incomeIntervalSeconds = balance.incomeIntervalSeconds;
             globalIncomeScalar    = balance.globalIncomeScalar;
-            baseCombatReward      = balance.baseCombatReward;
-            combatRewardPerTier   = balance.combatRewardPerTier;
             startingGold          = balance.startingGold;
             Debug.Log($"[EconomySystem] Balance configured: " +
                       $"income={incomeIntervalSeconds}s scalar={globalIncomeScalar} " +
-                      $"combatReward={baseCombatReward}+{combatRewardPerTier}/tier");
+                      $"killGold={balance.goldKillTier1}/{balance.goldKillTier2}/{balance.goldKillTier3} (t1/t2/t3)");
         }
 
         /// <summary>
@@ -120,17 +116,25 @@ namespace Booty.Economy
                 return;
 
             float totalIncome = 0f;
+            int portCount = playerPorts.Count;
+
+            // Diminishing returns: first 5 ports yield full income; each additional
+            // port (6th, 7th, …) yields 50% of its base income.
+            // Example: 5 ports at 50g each → 250g. 7 ports → 250g + 2 × (50g × 0.5) = 300g.
+            int portIndex = 0;
             foreach (var port in playerPorts)
             {
-                totalIncome += port.baseIncome * globalIncomeScalar;
+                float portScale = portIndex < 5 ? 1f : 0.5f;
+                totalIncome += port.baseIncome * globalIncomeScalar * portScale;
+                portIndex++;
             }
 
             if (totalIncome > 0f)
             {
                 AddGold(totalIncome);
-                OnIncomeCollected?.Invoke(totalIncome, playerPorts.Count);
+                OnIncomeCollected?.Invoke(totalIncome, portCount);
                 Debug.Log($"[EconomySystem] Port income collected: +{totalIncome:F0} gold " +
-                          $"from {playerPorts.Count} port(s). Total gold: {Gold:F0}");
+                          $"from {portCount} port(s) (ports 6+: 50% rate). Total gold: {Gold:F0}");
             }
         }
 
@@ -178,10 +182,29 @@ namespace Booty.Economy
         /// <returns>The gold amount awarded.</returns>
         public float AwardCombatSpoils(int enemyTier)
         {
-            float reward = baseCombatReward + (combatRewardPerTier * Mathf.Max(0, enemyTier - 1));
+            float reward = _balance != null
+                ? _balance.CombatRewardForTier(enemyTier)
+                : DefaultCombatRewardForTier(enemyTier);
             AddGold(reward);
             Debug.Log($"[EconomySystem] Combat spoils: +{reward:F0} gold (tier {enemyTier}).");
             return reward;
+        }
+
+        /// <summary>
+        /// Tier-specific combat gold fallback used when no GameBalance asset is configured.
+        /// Matches the default values in <see cref="Booty.Balance.GameBalance"/>.
+        /// </summary>
+        private static float DefaultCombatRewardForTier(int tier)
+        {
+            switch (tier)
+            {
+                case 1: return 10f;
+                case 2: return 25f;
+                case 3: return 50f;
+                case 4: return 100f;
+                case 5: return 200f;
+                default: return 10f;
+            }
         }
 
         /// <summary>
@@ -196,9 +219,12 @@ namespace Booty.Economy
 
             var playerPorts = _portSystem.GetPortsByFaction("player_pirates");
             float total = 0f;
+            int idx = 0;
             foreach (var port in playerPorts)
             {
-                total += port.baseIncome * globalIncomeScalar;
+                float portScale = idx < 5 ? 1f : 0.5f;
+                total += port.baseIncome * globalIncomeScalar * portScale;
+                idx++;
             }
             return total;
         }

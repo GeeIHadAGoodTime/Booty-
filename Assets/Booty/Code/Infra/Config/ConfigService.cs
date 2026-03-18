@@ -88,6 +88,37 @@ namespace Booty.Config
         }
 
         // ══════════════════════════════════════════════════════════════════
+        //  Embedded Default JSON (used when TextAssets are not assigned)
+        // ══════════════════════════════════════════════════════════════════
+
+        private const string DEFAULT_PORTS_JSON =
+            "{\"ports\":[" +
+            "{\"id\":\"port_haven\",\"name\":\"Port Haven\",\"region_id\":\"silver_sea\",\"faction_owner\":\"player_pirates\",\"base_income\":50,\"defense_rating\":2.0,\"level\":1,\"position_x\":-40.0,\"position_z\":30.0}," +
+            "{\"id\":\"fort_imperial\",\"name\":\"Fort Imperial\",\"region_id\":\"silver_sea\",\"faction_owner\":\"spanish_crown\",\"base_income\":80,\"defense_rating\":4.0,\"level\":2,\"position_x\":50.0,\"position_z\":40.0}," +
+            "{\"id\":\"nassau\",\"name\":\"Nassau\",\"region_id\":\"silver_sea\",\"faction_owner\":\"british_crown\",\"base_income\":70,\"defense_rating\":3.0,\"level\":2,\"position_x\":-80.0,\"position_z\":120.0}," +
+            "{\"id\":\"havana\",\"name\":\"Havana\",\"region_id\":\"silver_sea\",\"faction_owner\":\"spanish_crown\",\"base_income\":100,\"defense_rating\":5.0,\"level\":3,\"position_x\":-120.0,\"position_z\":40.0}," +
+            "{\"id\":\"tortuga\",\"name\":\"Tortuga\",\"region_id\":\"silver_sea\",\"faction_owner\":\"player_pirates\",\"base_income\":60,\"defense_rating\":2.0,\"level\":1,\"position_x\":-60.0,\"position_z\":20.0}," +
+            "{\"id\":\"kingston\",\"name\":\"Kingston\",\"region_id\":\"silver_sea\",\"faction_owner\":\"british_crown\",\"base_income\":80,\"defense_rating\":4.0,\"level\":2,\"position_x\":-100.0,\"position_z\":-60.0}," +
+            "{\"id\":\"cartagena\",\"name\":\"Cartagena\",\"region_id\":\"silver_sea\",\"faction_owner\":\"spanish_crown\",\"base_income\":90,\"defense_rating\":4.5,\"level\":2,\"position_x\":60.0,\"position_z\":-160.0}," +
+            "{\"id\":\"smugglers_cove\",\"name\":\"Smugglers Cove\",\"region_id\":\"silver_sea\",\"faction_owner\":\"neutral_traders\",\"base_income\":30,\"defense_rating\":1.0,\"level\":1,\"position_x\":10.0,\"position_z\":-50.0}" +
+            "]}";
+
+        private const string DEFAULT_SHIPS_JSON =
+            "{\"ships\":[" +
+            "{\"id\":\"sloop\",\"name\":\"Sloop\",\"ship_class\":\"sloop\",\"hull\":80,\"sail\":60,\"speed\":8.0,\"turn_rate\":90.0,\"broadside_slots\":4,\"crew_min\":10,\"crew_optimal\":20,\"value\":500,\"tier\":1}," +
+            "{\"id\":\"brig\",\"name\":\"Brigantine\",\"ship_class\":\"brig\",\"hull\":150,\"sail\":100,\"speed\":6.0,\"turn_rate\":60.0,\"broadside_slots\":8,\"crew_min\":30,\"crew_optimal\":60,\"value\":1500,\"tier\":2}," +
+            "{\"id\":\"galleon\",\"name\":\"Galleon\",\"ship_class\":\"galleon\",\"hull\":250,\"sail\":150,\"speed\":4.0,\"turn_rate\":35.0,\"broadside_slots\":14,\"crew_min\":80,\"crew_optimal\":150,\"value\":4000,\"tier\":3}" +
+            "]}";
+
+        private const string DEFAULT_FACTIONS_JSON =
+            "{\"factions\":[" +
+            "{\"id\":\"player_pirates\",\"name\":\"The Free Captains\",\"color_r\":255,\"color_g\":215,\"color_b\":0,\"is_major\":false,\"is_pirate\":true}," +
+            "{\"id\":\"british_crown\",\"name\":\"The British Crown\",\"color_r\":1,\"color_g\":52,\"color_b\":154,\"is_major\":true,\"is_pirate\":false}," +
+            "{\"id\":\"spanish_crown\",\"name\":\"The Spanish Crown\",\"color_r\":200,\"color_g\":30,\"color_b\":30,\"is_major\":true,\"is_pirate\":false}," +
+            "{\"id\":\"french_crown\",\"name\":\"The French Crown\",\"color_r\":1,\"color_g\":52,\"color_b\":128,\"is_major\":true,\"is_pirate\":false}" +
+            "]}";
+
+        // ══════════════════════════════════════════════════════════════════
         //  Port Loading
         // ══════════════════════════════════════════════════════════════════
 
@@ -95,15 +126,15 @@ namespace Booty.Config
         {
             if (portsTextAsset == null)
             {
-                Debug.LogError("[ConfigService] portsTextAsset is not assigned.");
-                return new List<PortData>();
+                Debug.LogWarning("[ConfigService] portsTextAsset not assigned — using embedded Caribbean defaults.");
+                return ParseDefaultPorts();
             }
 
             var wrapper = JsonUtility.FromJson<PortListJson>(portsTextAsset.text);
             if (wrapper == null || wrapper.ports == null)
             {
-                Debug.LogError("[ConfigService] Failed to parse ports.json.");
-                return new List<PortData>();
+                Debug.LogWarning("[ConfigService] Failed to parse ports.json — using embedded Caribbean defaults.");
+                return ParseDefaultPorts();
             }
 
             var result = new List<PortData>(wrapper.ports.Count);
@@ -126,6 +157,31 @@ namespace Booty.Config
             return result;
         }
 
+        private List<PortData> ParseDefaultPorts()
+        {
+            var wrapper = JsonUtility.FromJson<PortListJson>(DEFAULT_PORTS_JSON);
+            if (wrapper == null || wrapper.ports == null)
+            {
+                Debug.LogWarning("[ConfigService] Failed to parse embedded ports JSON.");
+                return new List<PortData>();
+            }
+            var result = new List<PortData>(wrapper.ports.Count);
+            foreach (var j in wrapper.ports)
+            {
+                result.Add(new PortData
+                {
+                    id           = j.id,
+                    name         = j.name,
+                    regionId     = j.region_id,
+                    factionOwner = j.faction_owner,
+                    baseIncome   = j.base_income,
+                    defenseRating = j.defense_rating,
+                    level        = j.level,
+                });
+            }
+            return result;
+        }
+
         // ══════════════════════════════════════════════════════════════════
         //  Ship Loading
         // ══════════════════════════════════════════════════════════════════
@@ -134,15 +190,15 @@ namespace Booty.Config
         {
             if (shipsTextAsset == null)
             {
-                Debug.LogError("[ConfigService] shipsTextAsset is not assigned.");
-                return new List<ShipData>();
+                Debug.LogWarning("[ConfigService] shipsTextAsset not assigned — using embedded ship defaults.");
+                return ParseDefaultShips();
             }
 
             var wrapper = JsonUtility.FromJson<ShipListJson>(shipsTextAsset.text);
             if (wrapper == null || wrapper.ships == null)
             {
-                Debug.LogError("[ConfigService] Failed to parse ships.json.");
-                return new List<ShipData>();
+                Debug.LogWarning("[ConfigService] Failed to parse ships.json — using embedded ship defaults.");
+                return ParseDefaultShips();
             }
 
             var result = new List<ShipData>(wrapper.ships.Count);
@@ -168,6 +224,36 @@ namespace Booty.Config
             return result;
         }
 
+        private List<ShipData> ParseDefaultShips()
+        {
+            var wrapper = JsonUtility.FromJson<ShipListJson>(DEFAULT_SHIPS_JSON);
+            if (wrapper == null || wrapper.ships == null)
+            {
+                Debug.LogWarning("[ConfigService] Failed to parse embedded ships JSON.");
+                return new List<ShipData>();
+            }
+            var result = new List<ShipData>(wrapper.ships.Count);
+            foreach (var j in wrapper.ships)
+            {
+                result.Add(new ShipData
+                {
+                    id            = j.id,
+                    name          = j.name,
+                    shipClass     = j.ship_class,
+                    hull          = j.hull,
+                    sail          = j.sail,
+                    speed         = j.speed,
+                    turnRate      = j.turn_rate,
+                    broadsideSlots = j.broadside_slots,
+                    crewMin       = j.crew_min,
+                    crewOptimal   = j.crew_optimal,
+                    value         = j.value,
+                    tier          = j.tier,
+                });
+            }
+            return result;
+        }
+
         // ══════════════════════════════════════════════════════════════════
         //  Faction Loading
         // ══════════════════════════════════════════════════════════════════
@@ -176,15 +262,15 @@ namespace Booty.Config
         {
             if (factionsTextAsset == null)
             {
-                Debug.LogError("[ConfigService] factionsTextAsset is not assigned.");
-                return new List<FactionData>();
+                Debug.LogWarning("[ConfigService] factionsTextAsset not assigned — using embedded faction defaults.");
+                return ParseDefaultFactions();
             }
 
             var wrapper = JsonUtility.FromJson<FactionListJson>(factionsTextAsset.text);
             if (wrapper == null || wrapper.factions == null)
             {
-                Debug.LogError("[ConfigService] Failed to parse factions.json.");
-                return new List<FactionData>();
+                Debug.LogWarning("[ConfigService] Failed to parse factions.json — using embedded faction defaults.");
+                return ParseDefaultFactions();
             }
 
             var result = new List<FactionData>(wrapper.factions.Count);
@@ -205,6 +291,34 @@ namespace Booty.Config
                 result.Add(faction);
             }
 
+            return result;
+        }
+
+        private List<FactionData> ParseDefaultFactions()
+        {
+            var wrapper = JsonUtility.FromJson<FactionListJson>(DEFAULT_FACTIONS_JSON);
+            if (wrapper == null || wrapper.factions == null)
+            {
+                Debug.LogWarning("[ConfigService] Failed to parse embedded factions JSON.");
+                return new List<FactionData>();
+            }
+            var result = new List<FactionData>(wrapper.factions.Count);
+            foreach (var j in wrapper.factions)
+            {
+                var faction = new FactionData
+                {
+                    id    = j.id,
+                    name  = j.name,
+                    color = new int[3] { j.color_r, j.color_g, j.color_b },
+                    diplomacyFlags = new DiplomacyFlags
+                    {
+                        isMajor  = j.is_major,
+                        isPirate = j.is_pirate,
+                        recognizesPlayerKingdom = false,
+                    },
+                };
+                result.Add(faction);
+            }
             return result;
         }
 

@@ -1,0 +1,49 @@
+{
+  "factions": [
+    {
+      "id": "british",
+      "name": "British Crown",
+      "color_r": 220,
+      "color_g": 30,
+      "color_b": 30,
+      "is_major": true,
+      "is_pirate": false
+    },
+    {
+      "id": "spanish",
+      "name": "Spanish Armada",
+      "color_r": 230,
+      "color_g": 180,
+      "color_b": 20,
+      "is_major": true,
+      "is_pirate": false
+    },
+    {
+      "id": "pirate",
+      "name": "Pirate Brotherhood",
+      "color_r": 20,
+      "color_g": 20,
+      "color_b": 20,
+      "is_major": false,
+      "is_pirate": true
+    },
+    {
+      "id": "dutch",
+      "name": "Dutch West India Co.",
+      "color_r": 255,
+      "color_g": 140,
+      "color_b": 0,
+      "is_major": true,
+      "is_pirate": false
+    },
+    {
+      "id": "french",
+      "name": "French Republic",
+      "color_r": 30,
+      "color_g": 100,
+      "color_b": 200,
+      "is_major": true,
+      "is_pirate": false
+    }
+  ]
+}

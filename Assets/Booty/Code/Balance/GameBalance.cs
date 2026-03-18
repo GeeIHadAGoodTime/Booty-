@@ -117,6 +117,26 @@ namespace Booty.Balance
         public int lootPopupGoldPerTier = 25;
 
         // ══════════════════════════════════════════════════════════════════
+        //  Economy — Tier-Specific Gold Rewards
+        // ══════════════════════════════════════════════════════════════════
+
+        [Header("Economy — Tier Gold Rewards")]
+        [Tooltip("Gold awarded for sinking a tier-1 enemy ship (Sloop).")]
+        public float goldKillTier1 = 10f;
+
+        [Tooltip("Gold awarded for sinking a tier-2 enemy ship (Brigantine).")]
+        public float goldKillTier2 = 25f;
+
+        [Tooltip("Gold awarded for sinking a tier-3 enemy ship (Frigate).")]
+        public float goldKillTier3 = 50f;
+
+        [Tooltip("Gold awarded for sinking a tier-4 enemy ship (Galleon).")]
+        public float goldKillTier4 = 100f;
+
+        [Tooltip("Gold awarded for sinking a tier-5 enemy ship (Man-o-War).")]
+        public float goldKillTier5 = 200f;
+
+        // ══════════════════════════════════════════════════════════════════
         //  Economy — Port Income
         // ══════════════════════════════════════════════════════════════════
 
@@ -210,5 +230,23 @@ namespace Booty.Balance
 
         [Tooltip("Patrol waypoint radius around spawn point.")]
         public float patrolRadius = 30f;
+
+        // ══════════════════════════════════════════════════════════════════
+        //  Helpers
+        // ══════════════════════════════════════════════════════════════════
+
+        /// <summary>Returns combat gold reward for defeating an enemy of the given tier (1-5).</summary>
+        public float CombatRewardForTier(int tier)
+        {
+            switch (tier)
+            {
+                case 1: return goldKillTier1;
+                case 2: return goldKillTier2;
+                case 3: return goldKillTier3;
+                case 4: return goldKillTier4;
+                case 5: return goldKillTier5;
+                default: return goldKillTier1;
+            }
+        }
     }
 }

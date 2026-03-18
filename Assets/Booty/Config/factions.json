@@ -10,6 +10,15 @@
             "is_pirate": true
         },
         {
+            "id": "british_crown",
+            "name": "The British Crown",
+            "color_r": 1,
+            "color_g": 52,
+            "color_b": 154,
+            "is_major": true,
+            "is_pirate": false
+        },
+        {
             "id": "spanish_crown",
             "name": "The Spanish Crown",
             "color_r": 200,
@@ -17,6 +26,24 @@
             "color_b": 30,
             "is_major": true,
             "is_pirate": false
+        },
+        {
+            "id": "french_crown",
+            "name": "The French Crown",
+            "color_r": 1,
+            "color_g": 52,
+            "color_b": 128,
+            "is_major": true,
+            "is_pirate": false
+        },
+        {
+            "id": "npc_pirates",
+            "name": "The Brethren of the Coast",
+            "color_r": 25,
+            "color_g": 25,
+            "color_b": 25,
+            "is_major": false,
+            "is_pirate": true
         },
         {
             "id": "neutral_traders",

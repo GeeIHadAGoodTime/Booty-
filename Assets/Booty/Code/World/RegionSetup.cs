@@ -63,8 +63,8 @@ namespace Booty.World
             var portConfigs = ParsePortConfigs();
             if (portConfigs == null || portConfigs.Count == 0)
             {
-                Debug.LogError("[RegionSetup] No port configs found. Cannot build region.");
-                return;
+                Debug.LogWarning("[RegionSetup] No port configs parsed — using built-in Caribbean defaults.");
+                portConfigs = GetDefaultPortConfigs();
             }
 
             // Initialize the port system with parsed configs
@@ -81,21 +81,22 @@ namespace Booty.World
 
         /// <summary>
         /// Parse port definitions from the JSON TextAsset.
+        /// Falls back to built-in Caribbean defaults when no TextAsset is assigned.
         /// </summary>
         /// <returns>List of port runtime data from config.</returns>
         private List<PortRuntimeData> ParsePortConfigs()
         {
             if (portsConfigJson == null)
             {
-                Debug.LogError("[RegionSetup] Ports config JSON not assigned.");
-                return null;
+                Debug.LogWarning("[RegionSetup] Ports config JSON not assigned — using built-in Caribbean defaults.");
+                return GetDefaultPortConfigs();
             }
 
             var wrapper = JsonUtility.FromJson<PortConfigWrapper>(portsConfigJson.text);
             if (wrapper == null || wrapper.ports == null)
             {
-                Debug.LogError("[RegionSetup] Failed to parse ports config JSON.");
-                return null;
+                Debug.LogWarning("[RegionSetup] Failed to parse ports config JSON — using built-in Caribbean defaults.");
+                return GetDefaultPortConfigs();
             }
 
             var result = new List<PortRuntimeData>();
@@ -226,6 +227,25 @@ namespace Booty.World
         public List<GameObject> GetPortObjects()
         {
             return _portObjects;
+        }
+
+        /// <summary>
+        /// Returns hardcoded Caribbean port configs used when no JSON TextAsset is assigned.
+        /// Positions are on the XZ plane at a scale matching the default 300-unit world.
+        /// </summary>
+        private static List<PortRuntimeData> GetDefaultPortConfigs()
+        {
+            return new List<PortRuntimeData>
+            {
+                new PortRuntimeData { portId = "nassau",        portName = "Nassau",        regionId = "silver_sea", factionOwner = "british_crown",   baseIncome = 70,  defenseRating = 3.0f, level = 2, worldPosition = new Vector3(-80f,  0f,  120f) },
+                new PortRuntimeData { portId = "havana",        portName = "Havana",        regionId = "silver_sea", factionOwner = "spanish_crown",   baseIncome = 100, defenseRating = 5.0f, level = 3, worldPosition = new Vector3(-120f, 0f,   40f) },
+                new PortRuntimeData { portId = "tortuga",       portName = "Tortuga",       regionId = "silver_sea", factionOwner = "player_pirates",  baseIncome = 60,  defenseRating = 2.0f, level = 1, worldPosition = new Vector3( -60f, 0f,   20f) },
+                new PortRuntimeData { portId = "kingston",      portName = "Kingston",      regionId = "silver_sea", factionOwner = "british_crown",   baseIncome = 80,  defenseRating = 4.0f, level = 2, worldPosition = new Vector3(-100f, 0f,  -60f) },
+                new PortRuntimeData { portId = "port_royal",    portName = "Port Royal",    regionId = "silver_sea", factionOwner = "british_crown",   baseIncome = 75,  defenseRating = 4.5f, level = 2, worldPosition = new Vector3( -90f, 0f,  -70f) },
+                new PortRuntimeData { portId = "cartagena",     portName = "Cartagena",     regionId = "silver_sea", factionOwner = "spanish_crown",   baseIncome = 90,  defenseRating = 4.5f, level = 2, worldPosition = new Vector3(  60f, 0f, -160f) },
+                new PortRuntimeData { portId = "smugglers_cove",portName = "Smugglers Cove",regionId = "silver_sea", factionOwner = "neutral_traders", baseIncome = 30,  defenseRating = 1.0f, level = 1, worldPosition = new Vector3(  10f, 0f,  -50f) },
+                new PortRuntimeData { portId = "port_haven",    portName = "Port Haven",    regionId = "silver_sea", factionOwner = "player_pirates",  baseIncome = 50,  defenseRating = 2.0f, level = 1, worldPosition = new Vector3( -40f, 0f,   30f) },
+            };
         }
     }
 

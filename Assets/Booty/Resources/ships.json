@@ -1,0 +1,74 @@
+{
+  "ships": [
+    {
+      "id": "sloop",
+      "name": "Sloop",
+      "ship_class": "light",
+      "hull": 80,
+      "sail": 100,
+      "speed": 14.0,
+      "turn_rate": 100.0,
+      "broadside_slots": 4,
+      "crew_min": 8,
+      "crew_optimal": 12,
+      "value": 200,
+      "tier": 1
+    },
+    {
+      "id": "brigantine",
+      "name": "Brigantine",
+      "ship_class": "medium",
+      "hull": 140,
+      "sail": 85,
+      "speed": 11.0,
+      "turn_rate": 80.0,
+      "broadside_slots": 6,
+      "crew_min": 15,
+      "crew_optimal": 22,
+      "value": 600,
+      "tier": 2
+    },
+    {
+      "id": "frigate",
+      "name": "Frigate",
+      "ship_class": "heavy",
+      "hull": 220,
+      "sail": 70,
+      "speed": 8.0,
+      "turn_rate": 60.0,
+      "broadside_slots": 10,
+      "crew_min": 30,
+      "crew_optimal": 45,
+      "value": 1500,
+      "tier": 3
+    },
+    {
+      "id": "galleon",
+      "name": "Galleon",
+      "ship_class": "transport",
+      "hull": 340,
+      "sail": 55,
+      "speed": 6.0,
+      "turn_rate": 45.0,
+      "broadside_slots": 14,
+      "crew_min": 50,
+      "crew_optimal": 70,
+      "value": 3500,
+      "tier": 4
+    },
+    {
+      "id": "man_o_war",
+      "name": "Man-o-War",
+      "ship_class": "capital",
+      "hull": 500,
+      "sail": 40,
+      "speed": 4.0,
+      "turn_rate": 30.0,
+      "broadside_slots": 20,
+      "crew_min": 80,
+      "crew_optimal": 120,
+      "value": 8000,
+      "tier": 5
+    }
+  ]
+}

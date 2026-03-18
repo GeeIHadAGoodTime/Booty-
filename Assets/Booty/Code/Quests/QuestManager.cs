@@ -23,6 +23,7 @@ using System.Linq;
 using UnityEngine;
 using Booty.Core;
 using Booty.Economy;
+using Booty.Faction;
 
 namespace Booty.Quests
 {
@@ -410,6 +411,15 @@ namespace Booty.Quests
                 // RenownSystem exposes AddRenown(float) added by the renown system
                 _renownSystem.AddRenown(reward.renownAmount);
                 Debug.Log($"[QuestManager] Quest reward: +{reward.renownAmount:F0} renown.");
+            }
+
+            // Faction reputation reward
+            if (!string.IsNullOrEmpty(reward.reputationFactionId) && reward.reputationAmount != 0f)
+            {
+                ReputationManager.Instance?.ModifyReputation(
+                    reward.reputationFactionId, reward.reputationAmount);
+                Debug.Log($"[QuestManager] Quest reward: {reward.reputationAmount:+0;-0} reputation " +
+                          $"with '{reward.reputationFactionId}'.");
             }
         }
 

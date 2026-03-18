@@ -30,6 +30,15 @@ namespace Booty.Quests
 
         [Tooltip("Human-readable reward summary, e.g. '200 gold + 10 renown'.")]
         public string displayText = "";
+
+        [Header("Faction Reputation Reward")]
+        [Tooltip("ID of the faction whose reputation improves on quest completion " +
+                 "(e.g. 'british_crown'). Leave empty for no reputation change.")]
+        public string reputationFactionId = "";
+
+        [Tooltip("Reputation delta applied to the faction above on quest completion. " +
+                 "Positive = friendlier, negative = more hostile. 0 = no change.")]
+        public float reputationAmount = 0f;
     }
 
     /// <summary>

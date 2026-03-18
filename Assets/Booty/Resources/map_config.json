@@ -1,0 +1,132 @@
+{
+  "world_size": { "width": 2000, "height": 2000 },
+  "ports": [
+    { "id": "nassau",       "name": "Nassau",        "x": 600, "z": 1400, "faction": "pirate",  "strategic_value": "medium", "description": "Pirate haven in the Bahamas — loose governance, high traffic" },
+    { "id": "tortuga",      "name": "Tortuga",       "x": 400, "z": 1200, "faction": "pirate",  "strategic_value": "low",    "description": "Notorious pirate refuge off Hispaniola's northern coast" },
+    { "id": "havana",       "name": "Havana",        "x": 200, "z": 1300, "faction": "spanish", "strategic_value": "high",   "description": "Spanish crown jewel — gateway to the Gulf of Mexico" },
+    { "id": "port_royal",   "name": "Port Royal",    "x": 500, "z": 1000, "faction": "british", "strategic_value": "high",   "description": "British stronghold on Jamaica's southern coast" },
+    { "id": "santiago",     "name": "Santiago",      "x": 700, "z": 1100, "faction": "spanish", "strategic_value": "medium", "description": "Spanish port on Cuba's eastern tip, guards the passage" },
+    { "id": "bridgetown",   "name": "Bridgetown",    "x": 900, "z": 600,  "faction": "british", "strategic_value": "medium", "description": "British sugar colony in the Windward Islands" },
+    { "id": "cartagena",    "name": "Cartagena",     "x": 600, "z": 400,  "faction": "spanish", "strategic_value": "high",   "description": "Fortified Spanish treasure port on the Spanish Main" },
+    { "id": "maracaibo",    "name": "Maracaibo",     "x": 800, "z": 350,  "faction": "spanish", "strategic_value": "medium", "description": "Spanish colonial port on the Venezuelan coast" },
+    { "id": "panama_city",  "name": "Panama City",   "x": 300, "z": 300,  "faction": "spanish", "strategic_value": "high",   "description": "Pacific gateway — Spanish silver route terminus" },
+    { "id": "santo_domingo","name": "Santo Domingo", "x": 500, "z": 1100, "faction": "spanish", "strategic_value": "medium", "description": "First permanent European settlement in the Americas" },
+    { "id": "martinique",   "name": "Martinique",    "x": 850, "z": 750,  "faction": "french",  "strategic_value": "medium", "description": "French sugar island in the eastern Caribbean" },
+    { "id": "trinidad",     "name": "Trinidad",      "x":1000, "z": 450,  "faction": "british", "strategic_value": "low",    "description": "British outpost near the Venezuelan delta" },
+    { "id": "kingston",     "name": "Kingston",      "x": 480, "z": 980,  "faction": "british", "strategic_value": "medium", "description": "Growing British naval base, rivals Port Royal" },
+    { "id": "barbados_port","name": "Barbados Port", "x": 950, "z": 620,  "faction": "british", "strategic_value": "low",    "description": "Small British plantation anchorage" },
+    { "id": "bermuda",      "name": "Bermuda",        "x": 900, "z": 1700, "faction": "british", "strategic_value": "low",    "description": "Remote British outpost — resupply stop for Atlantic crossings" },
+    { "id": "curacao",      "name": "Curacao",        "x": 750, "z": 400,  "faction": "dutch",   "strategic_value": "medium", "description": "Dutch trading hub — neutral market for contraband and goods" },
+    { "id": "saint_kitts",  "name": "Saint Kitts",   "x": 780, "z": 800,  "faction": "british", "strategic_value": "low",    "description": "First permanent British settlement in the Caribbean" }
+  ],
+  "trade_routes": [
+    {
+      "from": "havana",
+      "to": "cartagena",
+      "name": "Spanish Main Route",
+      "income_bonus": 20,
+      "description": "Core Spanish colonial trade artery — gold, silver, and tobacco flow between Cuba and the Main"
+    },
+    {
+      "from": "port_royal",
+      "to": "bridgetown",
+      "name": "British Sugar Run",
+      "income_bonus": 15,
+      "description": "British inter-island sugar and rum trade between Jamaica and Barbados"
+    },
+    {
+      "from": "cartagena",
+      "to": "panama_city",
+      "name": "Silver Galleon Path",
+      "income_bonus": 25,
+      "description": "Most valuable route — Spanish treasure fleets carrying New World silver"
+    },
+    {
+      "from": "curacao",
+      "to": "maracaibo",
+      "name": "Dutch Contraband Loop",
+      "income_bonus": 18,
+      "description": "Dutch smugglers trade manufactured goods for Venezuelan cacao and hides"
+    },
+    {
+      "from": "nassau",
+      "to": "tortuga",
+      "name": "Pirate Brotherhood Run",
+      "income_bonus": 10,
+      "description": "Pirate supply and intelligence exchange between Bahamian and Haitian bases"
+    },
+    {
+      "from": "martinique",
+      "to": "santo_domingo",
+      "name": "French-Spanish Border Trade",
+      "income_bonus": 12,
+      "description": "Uneasy commerce across the French-Spanish island border"
+    }
+  ],
+  "chokepoints": [
+    {
+      "id": "windward_pass",
+      "name": "Windward Passage",
+      "x": 600,
+      "z": 1150,
+      "width": 80,
+      "description": "Narrow strait between Cuba and Hispaniola — controls eastern Caribbean access. All east-west traffic must pass through here."
+    },
+    {
+      "id": "yucatan_channel",
+      "name": "Yucatan Channel",
+      "x": 100,
+      "z": 1200,
+      "width": 100,
+      "description": "Gateway into the Gulf of Mexico between Cuba and the Yucatan Peninsula. Havana's defensive buffer."
+    },
+    {
+      "id": "mona_passage",
+      "name": "Mona Passage",
+      "x": 750,
+      "z": 1050,
+      "width": 70,
+      "description": "Tight passage between Hispaniola and Puerto Rico — controls access to the Leeward Islands from the north."
+    },
+    {
+      "id": "venezuela_narrows",
+      "name": "Venezuela Narrows",
+      "x": 900,
+      "z": 380,
+      "width": 90,
+      "description": "Coastal pinch-point along the Venezuelan coast between Curacao and Trinidad — key for controlling Main access."
+    }
+  ],
+  "safe_zones": [
+    {
+      "port_id": "havana",
+      "faction": "spanish",
+      "radius": 200,
+      "description": "Spanish Armada's primary patrol zone — three warships guard the approaches at all times"
+    },
+    {
+      "port_id": "port_royal",
+      "faction": "british",
+      "radius": 180,
+      "description": "Royal Navy patrol out of Port Royal — heavily enforced, fastest British response time"
+    },
+    {
+      "port_id": "cartagena",
+      "faction": "spanish",
+      "radius": 220,
+      "description": "Cartagena fortress zone — fortified walls extend influence far out to sea"
+    },
+    {
+      "port_id": "bridgetown",
+      "faction": "british",
+      "radius": 150,
+      "description": "British colonial patrol — lighter than Port Royal, but reinforced during sugar harvest season"
+    },
+    {
+      "port_id": "nassau",
+      "faction": "pirate",
+      "radius": 120,
+      "description": "Pirate Brotherhood's informal protection zone — outsiders enter at their own risk"
+    }
+  ]
+}

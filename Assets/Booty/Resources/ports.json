@@ -1,0 +1,191 @@
+{
+  "ports": [
+    {
+      "id": "nassau",
+      "name": "Nassau",
+      "region_id": "bahamas",
+      "faction_owner": "pirate",
+      "base_income": 30.0,
+      "defense_rating": 3.0,
+      "level": 2,
+      "position_x": 600.0,
+      "position_z": 1400.0
+    },
+    {
+      "id": "tortuga",
+      "name": "Tortuga",
+      "region_id": "hispaniola",
+      "faction_owner": "pirate",
+      "base_income": 20.0,
+      "defense_rating": 2.0,
+      "level": 1,
+      "position_x": 400.0,
+      "position_z": 1200.0
+    },
+    {
+      "id": "havana",
+      "name": "Havana",
+      "region_id": "cuba",
+      "faction_owner": "spanish",
+      "base_income": 50.0,
+      "defense_rating": 8.0,
+      "level": 4,
+      "position_x": 200.0,
+      "position_z": 1300.0
+    },
+    {
+      "id": "port_royal",
+      "name": "Port Royal",
+      "region_id": "jamaica",
+      "faction_owner": "british",
+      "base_income": 45.0,
+      "defense_rating": 7.0,
+      "level": 4,
+      "position_x": 500.0,
+      "position_z": 1000.0
+    },
+    {
+      "id": "santiago",
+      "name": "Santiago",
+      "region_id": "cuba",
+      "faction_owner": "spanish",
+      "base_income": 35.0,
+      "defense_rating": 5.0,
+      "level": 3,
+      "position_x": 700.0,
+      "position_z": 1100.0
+    },
+    {
+      "id": "bridgetown",
+      "name": "Bridgetown",
+      "region_id": "windward_islands",
+      "faction_owner": "british",
+      "base_income": 30.0,
+      "defense_rating": 4.0,
+      "level": 2,
+      "position_x": 900.0,
+      "position_z": 600.0
+    },
+    {
+      "id": "cartagena",
+      "name": "Cartagena",
+      "region_id": "main",
+      "faction_owner": "spanish",
+      "base_income": 50.0,
+      "defense_rating": 9.0,
+      "level": 5,
+      "position_x": 600.0,
+      "position_z": 400.0
+    },
+    {
+      "id": "maracaibo",
+      "name": "Maracaibo",
+      "region_id": "venezuela",
+      "faction_owner": "spanish",
+      "base_income": 40.0,
+      "defense_rating": 6.0,
+      "level": 3,
+      "position_x": 800.0,
+      "position_z": 350.0
+    },
+    {
+      "id": "panama_city",
+      "name": "Panama City",
+      "region_id": "panama",
+      "faction_owner": "spanish",
+      "base_income": 45.0,
+      "defense_rating": 8.0,
+      "level": 4,
+      "position_x": 300.0,
+      "position_z": 300.0
+    },
+    {
+      "id": "santo_domingo",
+      "name": "Santo Domingo",
+      "region_id": "hispaniola",
+      "faction_owner": "spanish",
+      "base_income": 35.0,
+      "defense_rating": 5.0,
+      "level": 3,
+      "position_x": 500.0,
+      "position_z": 1100.0
+    },
+    {
+      "id": "martinique",
+      "name": "Martinique",
+      "region_id": "windward_islands",
+      "faction_owner": "french",
+      "base_income": 30.0,
+      "defense_rating": 4.0,
+      "level": 2,
+      "position_x": 850.0,
+      "position_z": 750.0
+    },
+    {
+      "id": "trinidad",
+      "name": "Trinidad",
+      "region_id": "venezuela",
+      "faction_owner": "british",
+      "base_income": 25.0,
+      "defense_rating": 3.0,
+      "level": 2,
+      "position_x": 1000.0,
+      "position_z": 450.0
+    },
+    {
+      "id": "kingston",
+      "name": "Kingston",
+      "region_id": "jamaica",
+      "faction_owner": "british",
+      "base_income": 40.0,
+      "defense_rating": 6.0,
+      "level": 3,
+      "position_x": 480.0,
+      "position_z": 980.0
+    },
+    {
+      "id": "barbados_port",
+      "name": "Barbados Port",
+      "region_id": "windward_islands",
+      "faction_owner": "british",
+      "base_income": 20.0,
+      "defense_rating": 2.0,
+      "level": 1,
+      "position_x": 950.0,
+      "position_z": 620.0
+    },
+    {
+      "id": "bermuda",
+      "name": "Bermuda",
+      "region_id": "bermuda",
+      "faction_owner": "british",
+      "base_income": 15.0,
+      "defense_rating": 3.0,
+      "level": 1,
+      "position_x": 900.0,
+      "position_z": 1700.0
+    },
+    {
+      "id": "curacao",
+      "name": "Curacao",
+      "region_id": "netherlands_antilles",
+      "faction_owner": "dutch",
+      "base_income": 35.0,
+      "defense_rating": 5.0,
+      "level": 3,
+      "position_x": 750.0,
+      "position_z": 400.0
+    },
+    {
+      "id": "saint_kitts",
+      "name": "Saint Kitts",
+      "region_id": "leeward_islands",
+      "faction_owner": "british",
+      "base_income": 20.0,
+      "defense_rating": 2.0,
+      "level": 1,
+      "position_x": 780.0,
+      "position_z": 800.0
+    }
+  ]
+}

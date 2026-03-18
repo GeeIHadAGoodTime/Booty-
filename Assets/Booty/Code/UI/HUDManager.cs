@@ -56,6 +56,16 @@ namespace Booty.UI
         private RectTransform _minimapRoot;
         private List<GameObject> _minimapDots = new List<GameObject>();
 
+        // Kill counter
+        private Text _killValueText;
+        private int  _sessionKills = 0;
+
+        // HP panel flash (below 25%)
+        private Image _hpPanelBgImage;
+        private float _hpFlashTimer    = 0f;
+        private bool  _hpFlashVisible  = true;
+        private const float HpFlashInterval = 0.4f;
+
         // Notification
         private Text  _notificationText;
         private float _notificationTimer;
@@ -92,6 +102,7 @@ namespace Booty.UI
             RefreshStatPanels();
             RefreshCompass();
             TickNotification();
+            TickHpFlash();
 
             _minimapTimer -= Time.deltaTime;
             if (_minimapTimer <= 0f)
@@ -104,6 +115,17 @@ namespace Booty.UI
         // ══════════════════════════════════════════════════════════════════
         //  Public API (preserved from S2.8)
         // ══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Increments the session kill counter and updates the HUD panel.
+        /// Called by BootyBootstrap when any enemy is destroyed.
+        /// </summary>
+        public void RegisterKill()
+        {
+            _sessionKills++;
+            if (_killValueText != null)
+                _killValueText.text = _sessionKills.ToString();
+        }
 
         /// <summary>
         /// Show a transient income notification at the bottom of the screen.
@@ -161,6 +183,33 @@ namespace Booty.UI
             int sector = Mathf.RoundToInt(deg / 45f) % 8;
             string[] dirs = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
             return dirs[sector];
+        }
+
+        private void TickHpFlash()
+        {
+            var hpSys = GameRoot.Instance?.HPSystem;
+            if (hpSys == null || _hpPanelBgImage == null) return;
+
+            float ratio = hpSys.MaxHP > 0 ? (float)hpSys.CurrentHP / hpSys.MaxHP : 1f;
+
+            if (ratio < 0.25f)
+            {
+                _hpFlashTimer += Time.deltaTime;
+                if (_hpFlashTimer >= HpFlashInterval)
+                {
+                    _hpFlashTimer   = 0f;
+                    _hpFlashVisible = !_hpFlashVisible;
+                }
+                _hpPanelBgImage.color = _hpFlashVisible
+                    ? new Color(0.6f, 0.05f, 0.05f, 0.95f)   // danger red flash
+                    : PanelBg;
+            }
+            else
+            {
+                _hpPanelBgImage.color = PanelBg;
+                _hpFlashTimer   = 0f;
+                _hpFlashVisible = true;
+            }
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -291,9 +340,15 @@ namespace Booty.UI
             float panelH = 58f;
             float gap    = 8f;
 
-            _goldValueText   = MakeStatPanel(canvas, "Gold",   "⚓ GOLD",   GoldColor,   0, startX, panelW, panelH, gap);
-            _hpValueText     = MakeStatPanel(canvas, "HP",     "♥ HULL",   HpGreen,     1, startX, panelW, panelH, gap);
-            _renownValueText = MakeStatPanel(canvas, "Renown", "★ RENOWN", RenownBlue,  2, startX, panelW, panelH, gap);
+            _goldValueText   = MakeStatPanel(canvas, "Gold",   "⚓ GOLD",   GoldColor,                  0, startX, panelW, panelH, gap);
+            _hpValueText     = MakeStatPanel(canvas, "HP",     "♥ HULL",   HpGreen,                    1, startX, panelW, panelH, gap);
+            _renownValueText = MakeStatPanel(canvas, "Renown", "★ RENOWN", RenownBlue,                 2, startX, panelW, panelH, gap);
+            _killValueText   = MakeStatPanel(canvas, "Kills",  "KILLS",    new Color(0.9f, 0.5f, 0.9f), 3, startX, panelW, panelH, gap);
+            if (_killValueText != null) _killValueText.text = "0";
+
+            // Cache HP panel background Image for low-HP flash effect
+            var hpPanelT = canvas.transform.Find("HUD_HP");
+            if (hpPanelT != null) _hpPanelBgImage = hpPanelT.GetComponent<Image>();
         }
 
         private Text MakeStatPanel(GameObject canvas, string id, string labelStr,

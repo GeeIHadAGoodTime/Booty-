@@ -131,6 +131,7 @@ namespace Booty.Bootstrap
         private ReputationManager  _reputationManager;     // Faction reputation tracker
         private Booty.AI.EnemySpawner _regionEnemySpawner; // Open-water region danger spawner
         private ShipController     _playerShipController;  // Cached for NavalEncounter wiring
+        private TutorialManager    _tutorialManager;        // Tutorial hints (first play only)
 
         // ══════════════════════════════════════════════════════════════════
         //  Boot Sequence
@@ -223,6 +224,11 @@ namespace Booty.Bootstrap
             // HUDManager self-wires via FindObjectOfType in Start(); just AddComponent.
             var hudGO      = new GameObject("HUDManager");
             hudGO.AddComponent<HUDManager>();
+
+            // ── 9b. Tutorial Manager ─────────────────────────────────────────
+            // Shows contextual hints on first play (PlayerPrefs "tutorialSeen").
+            var tutorialGO = new GameObject("TutorialManager");
+            _tutorialManager = tutorialGO.AddComponent<TutorialManager>();
 
             // ── 10. Port Interaction UI ──────────────────────────────────────
             // PortInteractionUI self-wires; no Initialize() signature.
@@ -502,6 +508,8 @@ namespace Booty.Bootstrap
                     if (_questManager     != null) _questManager.ReportKill(enemyFaction); // S3.3: quest progress
                     // Attacking a faction's ships lowers reputation with that faction
                     _reputationManager?.ModifyReputation(enemyFaction, -10f);
+                    // Tutorial: notify first kill for hint 3
+                    _tutorialManager?.NotifyEnemyKilled();
                 };
                 var lootPopup = enemyGO.AddComponent<Booty.UI.LootPopup>();
                 // S3.6: Use balance values for loot popup if available
